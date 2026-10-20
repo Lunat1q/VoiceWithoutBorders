@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Shared key is shown in plain text, generated automatically on first run, and can be regenerated with **New**.
+- Status shows the IP address the peer name resolved to.
+- Warning with a VB-CABLE link when the computer has no playback devices.
+
 ## 0.1.0 — 2026-10-20
 
 - Send microphone and/or system sound (WASAPI loopback) to another PC over UDP.

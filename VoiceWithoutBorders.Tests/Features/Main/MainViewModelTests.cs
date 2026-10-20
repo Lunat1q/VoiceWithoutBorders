@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using Moq;
 using VoiceWithoutBorders.Features.Main;
@@ -20,6 +21,8 @@ public class MainViewModelTests
 
     public MainViewModelTests()
     {
+        _streaming.Setup(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new IPEndPoint(IPAddress.Parse("192.168.1.20"), 15300));
         _devices.Setup(d => d.GetInputDevices()).Returns([Mic]);
         _devices.Setup(d => d.GetOutputDevices()).Returns([Headset, Cable]);
         _store.Setup(s => s.Load()).Returns(new AppSettings
@@ -45,6 +48,51 @@ public class MainViewModelTests
         vm.MicPlayback.Should().Be(MainViewModel.Off, "the saved device is no longer present");
         vm.SystemCapture.Should().Be(MainViewModel.Off);
         vm.OutputDevices.Should().Equal(MainViewModel.Off, Headset, Cable);
+        vm.NoOutputDevices.Should().BeFalse();
+        _store.Verify(s => s.Save(It.IsAny<AppSettings>()), Times.Never, "an existing key is kept as is");
+    }
+
+    [Fact]
+    public void Constructor_NoSavedKey_GeneratesAndSavesOneKeepingOtherSettings()
+    {
+        _store.Setup(s => s.Load()).Returns(new AppSettings { PeerHost = "OFFICE-PC", MicCaptureDeviceId = "unplugged-device" });
+
+        var vm = Create();
+
+        vm.SharedKey.Should().HaveLength(24);
+        _store.Verify(s => s.Save(It.Is<AppSettings>(saved =>
+            saved.SharedKey == vm.SharedKey && saved.PeerHost == "OFFICE-PC" && saved.MicCaptureDeviceId == "unplugged-device")));
+    }
+
+    [Fact]
+    public void NewSharedKey_ReplacesKey()
+    {
+        var vm = Create();
+
+        vm.NewSharedKeyCommand.Execute(null);
+
+        vm.SharedKey.Should().NotBe("0123456789abcdef").And.HaveLength(24);
+    }
+
+    [Fact]
+    public void NoOutputDevices_WhenOnlyOffIsListed()
+    {
+        _devices.Setup(d => d.GetOutputDevices()).Returns([]);
+
+        Create().NoOutputDevices.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("OFFICE-PC", "Streaming with OFFICE-PC (192.168.1.20) on UDP port 15300.")]
+    [InlineData("192.168.1.20", "Streaming with 192.168.1.20 on UDP port 15300.")]
+    public async Task Start_ShowsResolvedAddress(string host, string expected)
+    {
+        var vm = Create();
+        vm.PeerHost = host;
+
+        await vm.StartCommand.ExecuteAsync(null);
+
+        vm.Status.Should().Be(expected);
     }
 
     [Fact]

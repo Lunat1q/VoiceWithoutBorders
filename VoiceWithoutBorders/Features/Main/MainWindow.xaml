@@ -19,9 +19,7 @@
         <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Margin" Value="0,4" />
         </Style>
-        <Style TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
-            <Setter Property="Margin" Value="0,4" />
-        </Style>
+        <BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
         <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="Margin" Value="0,4" />
             <Setter Property="DisplayMemberPath" Value="Name" />
@@ -42,6 +40,17 @@
     </Window.Resources>
 
     <StackPanel Margin="16">
+        <Border Margin="0,0,0,12" Padding="12,8" CornerRadius="4" BorderThickness="1"
+                BorderBrush="#FFFFA000" Background="#33FFA000"
+                Visibility="{Binding NoOutputDevices, Converter={StaticResource VisibleWhenTrue}}">
+            <TextBlock TextWrapping="Wrap">
+                This computer has no playback devices, so it cannot play or relay anything it receives.
+                Install a virtual cable such as
+                <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
+                then press Refresh devices.
+            </TextBlock>
+        </Border>
+
         <StackPanel IsEnabled="{Binding IsIdle}">
             <GroupBox Header="Other computer">
                 <Grid>
@@ -63,10 +72,15 @@
                     <TextBox x:Name="PortBox" Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Port}" />
 
                     <Label Grid.Row="2" Content="Shared _key" Target="{Binding ElementName=SharedKeyBox}" />
-                    <PasswordBox x:Name="SharedKeyBox" Grid.Row="2" Grid.Column="1" />
+                    <DockPanel Grid.Row="2" Grid.Column="1">
+                        <Button DockPanel.Dock="Right" Content="_New" MinWidth="0" Margin="8,4,0,4" Padding="12,0"
+                                ToolTip="Generate a new random key" Command="{Binding NewSharedKeyCommand}" />
+                        <TextBox x:Name="SharedKeyBox" FontFamily="Consolas"
+                                 Text="{Binding SharedKey, UpdateSourceTrigger=PropertyChanged}" />
+                    </DockPanel>
 
                     <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}"
-                               Text="Use the same port and key (16+ characters) on both computers." />
+                               Text="Use the same port and key (16+ characters) on both computers: type this key on the other one." />
                 </Grid>
             </GroupBox>
 
@@ -105,8 +119,11 @@
                     <Label Content="Its microphone o_n" Target="{Binding ElementName=MicPlaybackBox}" />
                     <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding MicPlayback}" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}"
-                               Text="Pick a virtual cable input (for example &quot;CABLE Input&quot;) so apps here can record it as a microphone." />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}">
+                        Pick a virtual cable input (for example "CABLE Input" from
+                        <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>)
+                        so apps here can record it as a microphone.
+                    </TextBlock>
 
                     <Label Grid.Row="2" Content="Its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
                     <ComboBox x:Name="SystemPlaybackBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemPlayback}" />

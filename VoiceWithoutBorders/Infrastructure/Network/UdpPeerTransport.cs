@@ -26,7 +26,7 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
 
     public TransportStats Stats => new(Interlocked.Read(ref _sent), Interlocked.Read(ref _received), Interlocked.Read(ref _rejected));
 
-    public async Task OpenAsync(string peerHost, int port, string sharedKey, CancellationToken cancellationToken = default)
+    public async Task<IPEndPoint> OpenAsync(string peerHost, int port, string sharedKey, CancellationToken cancellationToken = default)
     {
         Close();
         var addresses = await Dns.GetHostAddressesAsync(peerHost, AddressFamily.InterNetwork, cancellationToken);
@@ -37,7 +37,8 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
         var udp = new UdpClient(new IPEndPoint(IPAddress.Any, port));
         udp.Client.IOControl(SioUdpConnReset, [0], null);
 
-        _peer = new IPEndPoint(addresses[0], port);
+        var peer = new IPEndPoint(addresses[0], port);
+        _peer = peer;
         _codec = codec;
         _udp = udp;
         _cts = new CancellationTokenSource();
@@ -45,7 +46,8 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
         Interlocked.Exchange(ref _received, 0);
         Interlocked.Exchange(ref _rejected, 0);
         _ = ReceiveLoopAsync(udp, codec, _cts.Token);
-        logger.LogInformation("Listening on UDP {Port}, peer {Peer}", port, _peer);
+        logger.LogInformation("Listening on UDP {Port}, peer {Peer}", port, peer);
+        return peer;
     }
 
     public void Send(StreamKind kind, ArraySegment<byte> pcm)

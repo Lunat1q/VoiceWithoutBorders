@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.Extensions.Logging;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Infrastructure.Audio;
@@ -20,12 +21,12 @@ public sealed class StreamingService(
 
     public TransportStats Stats => transport.Stats;
 
-    public async Task StartAsync(AppSettings settings, CancellationToken cancellationToken = default)
+    public async Task<IPEndPoint> StartAsync(AppSettings settings, CancellationToken cancellationToken = default)
     {
         Stop();
         try
         {
-            await transport.OpenAsync(settings.PeerHost, settings.Port, settings.SharedKey, cancellationToken);
+            var peer = await transport.OpenAsync(settings.PeerHost, settings.Port, settings.SharedKey, cancellationToken);
 
             var maxLatency = TimeSpan.FromMilliseconds(settings.MaxLatencyMs);
             var players = new Dictionary<StreamKind, IAudioPlayer>();
@@ -37,6 +38,7 @@ public sealed class StreamingService(
             StartCapture(StreamKind.Microphone, settings.MicCaptureDeviceId, loopback: false);
             StartCapture(StreamKind.SystemAudio, settings.SystemCaptureDeviceId, loopback: true);
             IsRunning = true;
+            return peer;
         }
         catch
         {

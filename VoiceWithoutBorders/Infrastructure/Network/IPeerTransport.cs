@@ -1,3 +1,4 @@
+using System.Net;
 using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Infrastructure.Network;
@@ -13,7 +14,8 @@ public interface IPeerTransport : IDisposable
     TransportStats Stats { get; }
 
     /// <summary>Resolves the peer, derives the key and starts listening on <paramref name="port"/>.</summary>
-    Task OpenAsync(string peerHost, int port, string sharedKey, CancellationToken cancellationToken = default);
+    /// <returns>The address audio is sent to, so the user can spot a name resolving to the wrong adapter.</returns>
+    Task<IPEndPoint> OpenAsync(string peerHost, int port, string sharedKey, CancellationToken cancellationToken = default);
 
     void Send(StreamKind kind, ArraySegment<byte> pcm);
 

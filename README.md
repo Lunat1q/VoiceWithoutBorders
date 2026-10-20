@@ -15,11 +15,15 @@ Headset is plugged into **Desk PC**. You also want to talk and listen on **Lapto
 | Its microphone on | Off | **CABLE Input** (virtual cable) |
 | Its sound on | Headset | Off |
 
-On the laptop, apps (Teams, Discord, Zoom…) then use **CABLE Output** as their microphone.
+On the laptop, apps (Teams, Discord, Zoom…) then use **CABLE Output** as their microphone. In Windows sound settings, make **CABLE Output** both the *default* and the *default communications* recording device, so apps that just use "default" pick it too.
+
+The laptop's own microphone is not mixed in: Windows never combines microphones, and each app records from exactly one input. Only the headset mic reaches the call, even if you sit right next to the laptop.
 
 ### Why a virtual cable?
 
 Windows only lets drivers create microphones. To make the remote mic look like a local one, install a free virtual audio cable such as [VB-CABLE](https://vb-audio.com/Cable/). Play the incoming mic into **CABLE Input**; apps record from **CABLE Output**.
+
+The same applies to a computer with no sound card at all (a server, a VM): it has nothing to play on until a virtual cable is installed. The app shows a warning when it finds no playback devices.
 
 ### Avoid feedback loops
 
@@ -30,11 +34,11 @@ Windows only lets drivers create microphones. To make the remote mic look like a
 
 1. Install the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) on both PCs (or build from source, see below).
 2. Run `VoiceWithoutBorders.exe` on both PCs.
-3. On each PC enter the **other** computer's name or IP address, the same **UDP port** (default `15300`) and the same **shared key** (16+ characters).
+3. On each PC enter the **other** computer's name or IP address and the same **UDP port** (default `15300`). The first PC generates a random **shared key**: type that same key on the other PC (or press **New** for a fresh one).
 4. Choose the devices, then press **Start** on both.
 5. Allow the app through Windows Firewall when asked (private networks only).
 
-The status line shows packets sent, received and rejected. Lots of rejected packets and nothing received usually means the shared keys differ.
+The status line shows the address the name resolved to, plus packets sent, received and rejected. Lots of rejected packets and nothing received usually means the shared keys differ. If the address is wrong (a computer name resolving to a VPN or virtual adapter), enter the IP address instead of the name.
 
 **Max latency** caps the jitter buffer. Lower values feel snappier; raise it if you hear crackles on Wi‑Fi.
 

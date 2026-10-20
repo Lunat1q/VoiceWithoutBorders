@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -21,6 +22,8 @@ public class StreamingServiceTests
         SystemPlaybackDeviceId = "headset",
     };
 
+    private static readonly IPEndPoint Peer = new(IPAddress.Parse("192.168.1.20"), 15300);
+
     private readonly Mock<IPeerTransport> _transport = new();
     private readonly Mock<IAudioEndpointFactory> _endpoints = new();
     private readonly Mock<IAudioCapture> _capture = new();
@@ -29,6 +32,8 @@ public class StreamingServiceTests
 
     public StreamingServiceTests()
     {
+        _transport.Setup(t => t.OpenAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Peer);
         _endpoints.Setup(e => e.CreateCapture("mic", false)).Returns(_capture.Object);
         _endpoints.Setup(e => e.CreatePlayer("headset", TimeSpan.FromMilliseconds(80))).Returns(_player.Object);
         _sut = new StreamingService(_transport.Object, _endpoints.Object, NullLogger<StreamingService>.Instance);
@@ -37,8 +42,9 @@ public class StreamingServiceTests
     [Fact]
     public async Task StartAsync_OpensTransportAndOnlyEnabledDevices()
     {
-        await _sut.StartAsync(Settings);
+        var peer = await _sut.StartAsync(Settings);
 
+        peer.Should().Be(Peer);
         _sut.IsRunning.Should().BeTrue();
         _transport.Verify(t => t.OpenAsync("OFFICE-PC", 15300, "0123456789abcdef", It.IsAny<CancellationToken>()));
         _capture.Verify(c => c.Start());

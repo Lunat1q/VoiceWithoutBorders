@@ -1,3 +1,4 @@
+using System.Net;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Infrastructure.Network;
 
@@ -11,7 +12,8 @@ public interface IStreamingService
     TransportStats Stats { get; }
 
     /// <summary>Restarts if already running. On failure everything opened so far is closed and the error rethrown.</summary>
-    Task StartAsync(AppSettings settings, CancellationToken cancellationToken = default);
+    /// <returns>The peer address audio is sent to.</returns>
+    Task<IPEndPoint> StartAsync(AppSettings settings, CancellationToken cancellationToken = default);
 
     void Stop();
 }

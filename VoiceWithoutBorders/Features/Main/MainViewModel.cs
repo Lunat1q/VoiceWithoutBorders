@@ -28,7 +28,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsIdle))]
-    [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(RefreshDevicesCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(RefreshDevicesCommand), nameof(NewSharedKeyCommand))]
     private bool _isRunning;
 
     [ObservableProperty] private string _status = "Stopped";
@@ -41,6 +41,12 @@ public sealed partial class MainViewModel : ObservableObject
         _devices = devices;
 
         var settings = store.Load();
+        if (settings.SharedKey.Length == 0)
+        {
+            // Saved straight away so the key survives a restart while the user types it on the other computer.
+            settings = settings with { SharedKey = SharedKeyGenerator.Generate() };
+            store.Save(settings);
+        }
         PeerHost = settings.PeerHost;
         Port = settings.Port;
         SharedKey = settings.SharedKey;
@@ -53,6 +59,9 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<AudioDevice> OutputDevices { get; } = [];
 
     public bool IsIdle => !IsRunning;
+
+    /// <summary>Nothing here can play audio (no sound card, no virtual cable), so receiving is impossible.</summary>
+    public bool NoOutputDevices => OutputDevices.Count <= 1;
 
     [RelayCommand(CanExecute = nameof(IsIdle))]
     private async Task StartAsync()
@@ -69,9 +78,11 @@ public sealed partial class MainViewModel : ObservableObject
         try
         {
             _store.Save(settings);
-            await _streaming.StartAsync(settings);
+            var peer = await _streaming.StartAsync(settings);
             IsRunning = true;
-            Status = $"Streaming with {settings.PeerHost} on UDP port {settings.Port}.";
+            var address = peer.Address.ToString();
+            var target = settings.PeerHost == address ? address : $"{settings.PeerHost} ({address})";
+            Status = $"Streaming with {target} on UDP port {settings.Port}.";
         }
         catch (Exception ex)
         {
@@ -91,6 +102,9 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(IsIdle))]
     private void RefreshDevices() => LoadDevices(ToSettings());
 
+    [RelayCommand(CanExecute = nameof(IsIdle))]
+    private void NewSharedKey() => SharedKey = SharedKeyGenerator.Generate();
+
     /// <summary>Called once a second by the view.</summary>
     public void UpdateStats()
     {
@@ -109,6 +123,7 @@ public sealed partial class MainViewModel : ObservableObject
         SystemCapture = Find(OutputDevices, selection.SystemCaptureDeviceId);
         MicPlayback = Find(OutputDevices, selection.MicPlaybackDeviceId);
         SystemPlayback = Find(OutputDevices, selection.SystemPlaybackDeviceId);
+        OnPropertyChanged(nameof(NoOutputDevices));
     }
 
     private AppSettings ToSettings() => new()
