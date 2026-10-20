@@ -276,7 +276,7 @@
 
                             <StackPanel Grid.Row="3" Grid.Column="1">
                                 <TextBlock Style="{StaticResource Hint}"
-                                           Text="Click a box and press the new combination (with Ctrl, Alt or Win, or a function key). Backspace removes it." />
+                                           Text="Click a box, then press the new combination (with Ctrl, Alt or Win, or a function key). Esc cancels, Backspace removes it." />
                                 <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding HotkeyStatus}" />
                             </StackPanel>
                         </Grid>
