@@ -11,7 +11,6 @@
 - Heartbeat every second (protocol version 2): shows Connected / Waiting / Different key, and opens the firewall path both ways so audio no longer waits for the other side's first packet. Both computers need this version.
 - Packet counters replaced by Sending / Receiving activity lights.
 - Latency readout: measured network round trip plus estimated end-to-end delay per incoming stream, colour-coded, with a warning when audio is skipped to catch up.
-
 - Shared key is shown in plain text, generated automatically on first run, and can be regenerated with **New**.
 - Status shows the IP address the peer name resolved to.
 - Fix: computer names that resolve only to IPv6 failed with "No such host is known". The socket is now dual-stack (IPv4 + IPv6).
