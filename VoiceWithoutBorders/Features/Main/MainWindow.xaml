@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:main="clr-namespace:VoiceWithoutBorders.Features.Main"
         xmlns:hotkeys="clr-namespace:VoiceWithoutBorders.Features.Hotkeys"
+        xmlns:streaming="clr-namespace:VoiceWithoutBorders.Features.Streaming"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=main:MainViewModel}"
         Title="Voice Without Borders"
@@ -14,6 +15,18 @@
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
+        <SolidColorBrush x:Key="OkBrush" Color="#2EA043" />
+        <SolidColorBrush x:Key="WaitingBrush" Color="#FFA000" />
+        <SolidColorBrush x:Key="ErrorBrush" Color="#E5534B" />
+        <SolidColorBrush x:Key="IdleBrush" Color="#808080" Opacity="0.65" />
+        <Style x:Key="Dot" TargetType="Ellipse">
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="FlowDot" TargetType="Ellipse" BasedOn="{StaticResource Dot}">
+            <Setter Property="Fill" Value="{StaticResource IdleBrush}" />
+        </Style>
         <Style TargetType="Label">
             <Setter Property="Margin" Value="0,4,8,4" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -72,7 +85,54 @@
                     <GroupBox Header="Status">
                         <StackPanel>
                             <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="15" />
-                            <TextBlock Margin="0,4,0,0" Text="{Binding Stats}" Style="{StaticResource Hint}" />
+
+                            <!-- Link health while streaming: is the peer answering, is audio moving. -->
+                            <StackPanel Margin="0,8,0,0" Visibility="{Binding IsRunning, Converter={StaticResource VisibleWhenTrue}}">
+                                <DockPanel>
+                                    <Ellipse DockPanel.Dock="Left" Margin="0,5,8,0" VerticalAlignment="Top">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse" BasedOn="{StaticResource Dot}">
+                                                <Setter Property="Fill" Value="{StaticResource WaitingBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Connection}" Value="{x:Static streaming:PeerConnection.Connected}">
+                                                        <Setter Property="Fill" Value="{StaticResource OkBrush}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Connection}" Value="{x:Static streaming:PeerConnection.KeyMismatch}">
+                                                        <Setter Property="Fill" Value="{StaticResource ErrorBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="{Binding ConnectionText}" TextWrapping="Wrap" />
+                                </DockPanel>
+                                <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                    <Ellipse Margin="0,0,8,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse" BasedOn="{StaticResource FlowDot}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSending}" Value="True">
+                                                        <Setter Property="Fill" Value="{StaticResource OkBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="Sending" Margin="0,0,24,0" />
+                                    <Ellipse Margin="0,0,8,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse" BasedOn="{StaticResource FlowDot}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsReceiving}" Value="True">
+                                                        <Setter Property="Fill" Value="{StaticResource OkBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="Receiving" />
+                                </StackPanel>
+                            </StackPanel>
                             <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
                                 <!-- AccessText: the accent template does not turn "_t" into an access key by itself. -->
                                 <Button Command="{Binding StartCommand}" IsDefault="True" MinWidth="120"

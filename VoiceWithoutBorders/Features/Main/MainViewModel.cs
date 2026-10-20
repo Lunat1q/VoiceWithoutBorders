@@ -36,7 +36,16 @@ public sealed partial class MainViewModel : ObservableObject
     private bool _isRunning;
 
     [ObservableProperty] private string _status = "Stopped";
-    [ObservableProperty] private string _stats = "";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConnectionText))]
+    private PeerConnection _connection;
+
+    /// <summary>Audio left / arrived during the last second.</summary>
+    [ObservableProperty] private bool _isSending;
+    [ObservableProperty] private bool _isReceiving;
+
+    private readonly LinkMonitor _link = new();
 
     private static readonly HashSet<string> PersistedProperties =
     [
@@ -117,6 +126,8 @@ public sealed partial class MainViewModel : ObservableObject
         {
             var peer = await _streaming.StartAsync(settings);
             Overlay.Configure(settings);
+            _link.Reset();
+            Connection = PeerConnection.Waiting;
             IsRunning = true;
             var address = peer.Address.ToString();
             var target = settings.PeerHost == address ? address : $"{settings.PeerHost} ({address})";
@@ -134,7 +145,7 @@ public sealed partial class MainViewModel : ObservableObject
         _streaming.Stop();
         IsRunning = false;
         Status = "Stopped";
-        Stats = "";
+        IsSending = IsReceiving = false;
     }
 
     [RelayCommand(CanExecute = nameof(IsIdle))]
@@ -143,14 +154,22 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(IsIdle))]
     private void NewSharedKey() => SharedKey = SharedKeyGenerator.Generate();
 
+    public string ConnectionText => Connection switch
+    {
+        PeerConnection.Connected => "Connected: the other computer is answering.",
+        PeerConnection.KeyMismatch => $"{PeerHost} answers, but with a different shared key (or app version).",
+        _ => $"Waiting for {PeerHost} to answer. Start the app there with the same port and key, and allow it through Windows Firewall.",
+    };
+
     /// <summary>Called once a second by the view.</summary>
-    public void UpdateStats()
+    public void UpdateLinkStatus()
     {
         if (!IsRunning)
             return;
-        var stats = _streaming.Stats;
-        Stats = $"Packets sent {stats.Sent:N0} · received {stats.Received:N0} · rejected {stats.Rejected:N0}"
-            + (stats.Rejected > 0 && stats.Received == 0 ? " (do both computers use the same shared key?)" : "");
+        var link = _link.Update(_streaming.Stats);
+        Connection = link.Connection;
+        IsSending = link.Sending;
+        IsReceiving = link.Receiving;
     }
 
     private void LoadDevices(AppSettings selection)

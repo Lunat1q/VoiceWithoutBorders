@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using FluentAssertions;
 using VoiceWithoutBorders.Infrastructure.Network;
-using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Tests.Infrastructure.Network;
 
@@ -11,9 +10,9 @@ public class PacketCodecTests
     private static readonly byte[] Payload = [1, 2, 3, 4, 5, 6, 7, 8];
 
     [Theory]
-    [InlineData(StreamKind.Microphone)]
-    [InlineData(StreamKind.SystemAudio)]
-    public void RoundTrip_PreservesKindAndPayload(StreamKind kind)
+    [InlineData(PacketType.Microphone)]
+    [InlineData(PacketType.SystemAudio)]
+    public void RoundTrip_PreservesKindAndPayload(PacketType kind)
     {
         using var sender = new PacketCodec(Key);
         using var receiver = new PacketCodec(Key);
@@ -30,10 +29,34 @@ public class PacketCodecTests
     {
         using var sender = new PacketCodec(Key);
 
-        var packet = sender.Encode(StreamKind.Microphone, Payload);
+        var packet = sender.Encode(PacketType.Microphone, Payload);
 
         packet.Should().HaveCount(PacketCodec.Overhead + Payload.Length);
         packet[PacketCodec.Overhead..].Should().NotEqual(Payload);
+    }
+
+    [Fact]
+    public void Heartbeat_RoundTripsWithEmptyPayload()
+    {
+        using var sender = new PacketCodec(Key);
+        using var receiver = new PacketCodec(Key);
+
+        receiver.TryDecode(sender.Encode(PacketType.Heartbeat, []), out var type, out var payload).Should().BeTrue();
+
+        type.Should().Be(PacketType.Heartbeat);
+        payload.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void TryDecode_RejectsUnknownPacketType()
+    {
+        using var sender = new PacketCodec(Key);
+        using var receiver = new PacketCodec(Key);
+        var packet = sender.Encode(PacketType.Heartbeat, []);
+
+        packet[1] = 3;
+
+        receiver.TryDecode(packet, out _, out _).Should().BeFalse();
     }
 
     [Fact]
@@ -42,7 +65,7 @@ public class PacketCodecTests
         using var sender = new PacketCodec(Key);
         using var receiver = new PacketCodec(RandomNumberGenerator.GetBytes(32));
 
-        receiver.TryDecode(sender.Encode(StreamKind.Microphone, Payload), out _, out _).Should().BeFalse();
+        receiver.TryDecode(sender.Encode(PacketType.Microphone, Payload), out _, out _).Should().BeFalse();
     }
 
     [Theory]
@@ -55,7 +78,7 @@ public class PacketCodecTests
     {
         using var sender = new PacketCodec(Key);
         using var receiver = new PacketCodec(Key);
-        var packet = sender.Encode(StreamKind.Microphone, new byte[16]);
+        var packet = sender.Encode(PacketType.Microphone, new byte[16]);
 
         packet[index] ^= 0x01;
 
@@ -75,8 +98,8 @@ public class PacketCodecTests
     {
         using var sender = new PacketCodec(Key);
         using var receiver = new PacketCodec(Key);
-        var first = sender.Encode(StreamKind.Microphone, Payload);
-        var second = sender.Encode(StreamKind.Microphone, Payload);
+        var first = sender.Encode(PacketType.Microphone, Payload);
+        var second = sender.Encode(PacketType.Microphone, Payload);
 
         receiver.TryDecode(second, out _, out _).Should().BeTrue();
         receiver.TryDecode(second, out _, out _).Should().BeFalse("duplicate");
@@ -89,8 +112,8 @@ public class PacketCodecTests
         using var sender = new PacketCodec(Key);
         using var receiver = new PacketCodec(Key);
 
-        receiver.TryDecode(sender.Encode(StreamKind.Microphone, Payload), out _, out _).Should().BeTrue();
-        receiver.TryDecode(sender.Encode(StreamKind.SystemAudio, Payload), out _, out _).Should().BeTrue();
+        receiver.TryDecode(sender.Encode(PacketType.Microphone, Payload), out _, out _).Should().BeTrue();
+        receiver.TryDecode(sender.Encode(PacketType.SystemAudio, Payload), out _, out _).Should().BeTrue();
     }
 
     [Fact]
@@ -99,13 +122,13 @@ public class PacketCodecTests
         using var receiver = new PacketCodec(Key);
         using (var firstRun = new PacketCodec(Key))
         {
-            firstRun.Encode(StreamKind.Microphone, Payload);
-            receiver.TryDecode(firstRun.Encode(StreamKind.Microphone, Payload), out _, out _).Should().BeTrue();
+            firstRun.Encode(PacketType.Microphone, Payload);
+            receiver.TryDecode(firstRun.Encode(PacketType.Microphone, Payload), out _, out _).Should().BeTrue();
         }
 
         using var secondRun = new PacketCodec(Key);
 
-        receiver.TryDecode(secondRun.Encode(StreamKind.Microphone, Payload), out _, out _).Should().BeTrue();
+        receiver.TryDecode(secondRun.Encode(PacketType.Microphone, Payload), out _, out _).Should().BeTrue();
     }
 
     [Fact]
@@ -113,7 +136,7 @@ public class PacketCodecTests
     {
         using var codec = new PacketCodec(Key);
 
-        codec.TryDecode(codec.Encode(StreamKind.Microphone, Payload), out _, out _).Should().BeFalse();
+        codec.TryDecode(codec.Encode(PacketType.Microphone, Payload), out _, out _).Should().BeFalse();
     }
 
     [Fact]
@@ -122,7 +145,7 @@ public class PacketCodecTests
         using var sender = PacketCodec.FromSharedKey("correct horse battery staple");
         using var sameKey = PacketCodec.FromSharedKey("correct horse battery staple");
         using var otherKey = PacketCodec.FromSharedKey("correct horse battery stapler");
-        var packet = sender.Encode(StreamKind.SystemAudio, Payload);
+        var packet = sender.Encode(PacketType.SystemAudio, Payload);
 
         sameKey.TryDecode(packet, out _, out _).Should().BeTrue();
         otherKey.TryDecode(packet, out _, out _).Should().BeFalse();

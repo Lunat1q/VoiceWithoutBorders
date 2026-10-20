@@ -14,6 +14,8 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
     // Windows reports an ICMP "port unreachable" as a reset on the next receive while the peer is offline.
     private const int SioUdpConnReset = -1744830452;
 
+    public static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(1);
+
     private UdpClient? _udp;
     private IPEndPoint? _peer;
     private PacketCodec? _codec;
@@ -21,10 +23,19 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
     private long _sent;
     private long _received;
     private long _rejected;
+    private long _lastPeerTick; // Environment.TickCount64 of the last authentic packet; 0 = never
 
     public event Action<StreamKind, ArraySegment<byte>>? AudioReceived;
 
-    public TransportStats Stats => new(Interlocked.Read(ref _sent), Interlocked.Read(ref _received), Interlocked.Read(ref _rejected));
+    public TransportStats Stats
+    {
+        get
+        {
+            var last = Interlocked.Read(ref _lastPeerTick);
+            TimeSpan? sincePeer = last == 0 ? null : TimeSpan.FromMilliseconds(Environment.TickCount64 - last);
+            return new(Interlocked.Read(ref _sent), Interlocked.Read(ref _received), Interlocked.Read(ref _rejected), sincePeer);
+        }
+    }
 
     public async Task<IPEndPoint> OpenAsync(string peerHost, int port, string sharedKey, CancellationToken cancellationToken = default)
     {
@@ -42,7 +53,9 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
         Interlocked.Exchange(ref _sent, 0);
         Interlocked.Exchange(ref _received, 0);
         Interlocked.Exchange(ref _rejected, 0);
+        Interlocked.Exchange(ref _lastPeerTick, 0);
         _ = ReceiveLoopAsync(udp, codec, _cts.Token);
+        _ = HeartbeatLoopAsync(_cts.Token);
         logger.LogInformation("Listening on UDP {Port}, peer {Peer}", port, peer);
         return peer;
     }
@@ -93,16 +106,43 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
 
     public void Send(StreamKind kind, ArraySegment<byte> pcm)
     {
-        if (_udp is not { } udp || _codec is not { } codec || _peer is not { } peer)
-            return;
+        if (TrySend((PacketType)kind, pcm))
+            Interlocked.Increment(ref _sent);
+    }
+
+    /// <summary>
+    /// Beyond telling the peer we are here, sending first makes Windows Firewall treat the peer's packets as
+    /// replies, so audio gets through even when the inbound rule is missing or the network is marked Public.
+    /// </summary>
+    private async Task HeartbeatLoopAsync(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(HeartbeatInterval);
         try
         {
-            udp.Client.SendTo(codec.Encode(kind, pcm), peer);
-            Interlocked.Increment(ref _sent);
+            do
+            {
+                TrySend(PacketType.Heartbeat, []);
+            }
+            while (await timer.WaitForNextTickAsync(cancellationToken));
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private bool TrySend(PacketType type, ReadOnlySpan<byte> payload)
+    {
+        if (_udp is not { } udp || _codec is not { } codec || _peer is not { } peer)
+            return false;
+        try
+        {
+            udp.Client.SendTo(codec.Encode(type, payload), peer);
+            return true;
         }
         catch (Exception ex) when (ex is SocketException or ObjectDisposedException)
         {
             logger.LogDebug(ex, "Send failed");
+            return false;
         }
     }
 
@@ -113,13 +153,16 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
             try
             {
                 var result = await udp.ReceiveAsync(cancellationToken);
-                if (!codec.TryDecode(result.Buffer, out var kind, out var pcm))
+                if (!codec.TryDecode(result.Buffer, out var type, out var pcm))
                 {
                     Interlocked.Increment(ref _rejected);
                     continue;
                 }
+                Interlocked.Exchange(ref _lastPeerTick, Environment.TickCount64);
+                if (type == PacketType.Heartbeat)
+                    continue;
                 Interlocked.Increment(ref _received);
-                AudioReceived?.Invoke(kind, pcm);
+                AudioReceived?.Invoke((StreamKind)type, pcm);
             }
             catch (Exception ex) when (ex is OperationCanceledException or ObjectDisposedException)
             {

@@ -12,7 +12,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = viewModel;
 
-        var statsTimer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => viewModel.UpdateStats(), Dispatcher);
+        var statsTimer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => viewModel.UpdateLinkStatus(), Dispatcher);
         Closed += (_, _) => statsTimer.Stop();
 
         // Minimize goes to the tray; the tray icon brings it back.

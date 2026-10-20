@@ -3,7 +3,9 @@ using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Infrastructure.Network;
 
-public readonly record struct TransportStats(long Sent, long Received, long Rejected);
+/// <summary>Audio packet counters plus how long ago the peer was last heard (any authentic packet, heartbeats included).</summary>
+/// <param name="SincePeer">Null until the peer has answered at least once.</param>
+public readonly record struct TransportStats(long Sent, long Received, long Rejected, TimeSpan? SincePeer = null);
 
 /// <summary>Encrypted, connectionless audio link to one peer machine.</summary>
 public interface IPeerTransport : IDisposable
@@ -13,7 +15,10 @@ public interface IPeerTransport : IDisposable
 
     TransportStats Stats { get; }
 
-    /// <summary>Resolves the peer, derives the key and starts listening on <paramref name="port"/>.</summary>
+    /// <summary>
+    /// Resolves the peer, derives the key, starts listening on <paramref name="port"/> and sends a heartbeat every
+    /// second, so the link is proven (and firewalls opened) before any audio flows.
+    /// </summary>
     /// <returns>The address audio is sent to, so the user can spot a name resolving to the wrong adapter.</returns>
     Task<IPEndPoint> OpenAsync(string peerHost, int port, string sharedKey, CancellationToken cancellationToken = default);
 

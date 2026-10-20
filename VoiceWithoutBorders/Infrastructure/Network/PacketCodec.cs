@@ -1,6 +1,5 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
-using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Infrastructure.Network;
 
@@ -11,7 +10,7 @@ namespace VoiceWithoutBorders.Infrastructure.Network;
 /// </summary>
 public sealed class PacketCodec : IDisposable
 {
-    public const byte Version = 1;
+    public const byte Version = 2; // 2: heartbeat packets
     public const int MinSharedKeyLength = 16;
 
     private const int HeaderSize = 10;
@@ -24,7 +23,7 @@ public sealed class PacketCodec : IDisposable
     private static readonly byte[] Salt = "VoiceWithoutBorders/v1"u8.ToArray();
     private const int Pbkdf2Iterations = 210_000;
 
-    private static readonly int KindCount = Enum.GetValues<StreamKind>().Length;
+    private static readonly int KindCount = Enum.GetValues<PacketType>().Length;
 
     private readonly AesGcm _aes;
     private readonly Lock _sendLock = new();
@@ -39,7 +38,7 @@ public sealed class PacketCodec : IDisposable
         new(Rfc2898DeriveBytes.Pbkdf2(sharedKey, Salt, Pbkdf2Iterations, HashAlgorithmName.SHA256, 32));
 
     /// <summary>Thread-safe: both capture threads send through the same codec.</summary>
-    public byte[] Encode(StreamKind kind, ReadOnlySpan<byte> payload)
+    public byte[] Encode(PacketType kind, ReadOnlySpan<byte> payload)
     {
         var packet = new byte[Overhead + payload.Length];
         var span = packet.AsSpan();
@@ -61,7 +60,7 @@ public sealed class PacketCodec : IDisposable
     /// Returns false for anything that is not a fresh, authentic packet from the peer: wrong key, tampered,
     /// truncated, duplicate, late, or one of our own packets reflected back. Single-threaded (receive loop).
     /// </summary>
-    public bool TryDecode(ReadOnlySpan<byte> packet, out StreamKind kind, out byte[] payload)
+    public bool TryDecode(ReadOnlySpan<byte> packet, out PacketType kind, out byte[] payload)
     {
         kind = default;
         payload = [];
@@ -88,7 +87,7 @@ public sealed class PacketCodec : IDisposable
         }
 
         _lastReceived[index] = (session, sequence);
-        kind = (StreamKind)index;
+        kind = (PacketType)index;
         payload = plaintext;
         return true;
     }

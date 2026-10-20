@@ -319,14 +319,34 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task UpdateStats_AllRejected_HintsAtKeyMismatch()
+    public async Task UpdateLinkStatus_RejectedPackets_ExplainsKeyMismatch()
     {
         _streaming.Setup(s => s.Stats).Returns(new TransportStats(Sent: 10, Received: 0, Rejected: 5));
         var vm = Create();
         await vm.StartCommand.ExecuteAsync(null);
 
-        vm.UpdateStats();
+        vm.UpdateLinkStatus();
 
-        vm.Stats.Should().Contain("rejected 5").And.Contain("same shared key");
+        vm.Connection.Should().Be(PeerConnection.KeyMismatch);
+        vm.ConnectionText.Should().Contain("different shared key");
+        vm.IsSending.Should().BeTrue();
+        vm.IsReceiving.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task UpdateLinkStatus_PeerAnswering_ShowsConnected_AndStopClearsFlow()
+    {
+        _streaming.Setup(s => s.Stats).Returns(new TransportStats(Sent: 10, Received: 10, Rejected: 0, TimeSpan.FromMilliseconds(200)));
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+        vm.Connection.Should().Be(PeerConnection.Waiting, "nothing heard right after Start");
+
+        vm.UpdateLinkStatus();
+        vm.Connection.Should().Be(PeerConnection.Connected);
+        vm.IsReceiving.Should().BeTrue();
+
+        vm.StopCommand.Execute(null);
+        vm.IsSending.Should().BeFalse();
+        vm.IsReceiving.Should().BeFalse();
     }
 }

@@ -24,7 +24,7 @@ VoiceWithoutBorders/
 │   ├── Settings/                 # AppSettings (record + Validate), ISettingsStore, JsonSettingsStore (DPAPI key),
 │   │                             #   SharedKeyGenerator
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,
-│   │                             #   per-stream enable, peak levels for the overlay)
+│   │                             #   per-stream enable, peak levels for the overlay), LinkMonitor (link health)
 │   └── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu; the only WinForms use)
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
@@ -33,7 +33,7 @@ VoiceWithoutBorders/
     │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking + resampling helpers)
     ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window)
     └── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
-                                  #   PacketCodec (framing, AES-GCM, key derivation, replay window)
+                                  #   PacketCodec (framing, AES-GCM, key derivation, replay window), PacketType
 ```
 
 ## Tests (`VoiceWithoutBorders.Tests/`)
@@ -67,17 +67,22 @@ WasapiAudioCapture ──960-byte chunks──► StreamingService
                                                             WasapiPlayer (headset, or virtual cable input)
 ```
 
-## Packet layout (v1)
+Alongside audio, each transport sends an empty `Heartbeat` packet every second from Open. The receive loop stamps
+the time of every authentic packet (`TransportStats.SincePeer`); `LinkMonitor` turns that and the counters into
+Connected / Waiting / KeyMismatch plus Sending / Receiving, sampled once a second by the view model. Sending first
+also makes Windows Firewall treat the peer's traffic as replies, so a missing inbound rule does not block audio.
+
+## Packet layout (v2)
 
 | Offset | Size | Field | Notes |
 |-------:|-----:|-------|-------|
-| 0 | 1 | version | `1` |
-| 1 | 1 | kind | `StreamKind` |
+| 0 | 1 | version | `2` (v1 had no heartbeat; mixed versions reject each other) |
+| 1 | 1 | type | `PacketType`: 0 mic, 1 system audio, 2 heartbeat |
 | 2 | 4 | session | random per codec, big-endian |
-| 6 | 4 | sequence | per kind, big-endian |
+| 6 | 4 | sequence | per type, big-endian |
 | 10 | 12 | nonce | random |
 | 22 | 16 | tag | AES-GCM tag |
-| 38 | n | ciphertext | PCM, n ≤ 960 |
+| 38 | n | ciphertext | PCM, n ≤ 960; empty for heartbeat |
 
 Bytes 0–9 are the AES-GCM associated data, so the header is authenticated too.
 
@@ -87,5 +92,6 @@ Bytes 0–9 are the AES-GCM associated data, so the header is authenticated too.
 |--------|------|
 | UI | View model, start/stop, device enumeration |
 | Capture (one per active capture, NAudio) | Chunk + encrypt + `SendTo` |
-| Receive loop (thread pool) | Decrypt + write to jitter buffer |
+| Receive loop (thread pool) | Decrypt + write to jitter buffer, stamp peer last-seen |
+| Heartbeat loop (thread pool, `PeriodicTimer`) | One empty packet per second |
 | Playback (one per active player, NAudio) | Read jitter buffer into the device |

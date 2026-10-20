@@ -8,6 +8,8 @@
 - Window split into Stream, Connection, Devices and Hotkeys & overlay tabs; none needs scrolling.
 - Overlay can be unlocked, dragged anywhere and locked again; position is remembered.
 - Fix: tray menu shortcuts were glued to the item text.
+- Heartbeat every second (protocol version 2): shows Connected / Waiting / Different key, and opens the firewall path both ways so audio no longer waits for the other side's first packet. Both computers need this version.
+- Packet counters replaced by Sending / Receiving activity lights.
 
 - Shared key is shown in plain text, generated automatically on first run, and can be regenerated with **New**.
 - Status shows the IP address the peer name resolved to.

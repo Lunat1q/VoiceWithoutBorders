@@ -42,7 +42,14 @@ The same applies to a computer with no sound card at all (a server, a VM): it ha
 4. Choose the devices, then press **Start** on both.
 5. Allow the app through Windows Firewall when asked. The prompt only allows **private** networks by default: if Windows marks your network as *Public* (Settings → Network & internet → your connection → Network profile type), switch it to *Private*, or incoming audio is blocked.
 
-The status line shows the address the name resolved to, plus packets sent, received and rejected. Lots of rejected packets and nothing received usually means the shared keys differ. If the address is wrong (a computer name resolving to a VPN or virtual adapter), enter the IP address instead of the name.
+The *Stream* tab shows the address the name resolved to and the link health:
+
+- **● Connected** (green): the other computer's app is answering. Both apps exchange a small heartbeat every second, so this works before any audio flows.
+- **● Waiting** (amber): nothing heard yet. Start the app on the other computer with the same port and key, and check the firewall.
+- **● Different key** (red): packets arrive but are rejected; the shared keys (or app versions) differ.
+- **Sending / Receiving** light up while audio actually moved in the last second.
+
+If the address is wrong (a computer name resolving to a VPN or virtual adapter), enter the IP address instead of the name.
 
 **Max latency** caps the jitter buffer. Lower values feel snappier; raise it if you hear crackles on Wi‑Fi.
 
@@ -58,6 +65,7 @@ The window has four tabs: **Stream** (status, Start/Stop, live toggles), **Conne
 
 - Audio is captured with WASAPI (loopback capture for system sound) and converted by Windows to 48 kHz, 16-bit stereo PCM.
 - 5 ms chunks are sent over UDP. Lost packets are skipped rather than retransmitted.
+- Each side also sends an encrypted heartbeat every second. Besides showing the link is up, sending first makes Windows Firewall accept the other computer's packets as replies, so audio does not wait for the far side to speak first.
 - The receiver buffers up to *max latency* and plays on the chosen device. When clock drift fills the buffer it skips ahead.
 - Bandwidth is about 1.6 Mbit/s per active stream (uncompressed).
 
