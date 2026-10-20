@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VoiceWithoutBorders.Features.Settings;
@@ -36,6 +37,15 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _status = "Stopped";
     [ObservableProperty] private string _stats = "";
 
+    private static readonly HashSet<string> PersistedProperties =
+    [
+        nameof(PeerHost), nameof(Port), nameof(SharedKey), nameof(MaxLatencyMs),
+        nameof(MicCapture), nameof(SystemCapture), nameof(MicPlayback), nameof(SystemPlayback),
+    ];
+
+    // True while settings or device lists are being (re)loaded, so those writes are not saved back.
+    private bool _loading = true;
+
     public MainViewModel(IStreamingService streaming, ISettingsStore store, IAudioDeviceService devices)
     {
         _streaming = streaming;
@@ -54,6 +64,23 @@ public sealed partial class MainViewModel : ObservableObject
         SharedKey = settings.SharedKey;
         MaxLatencyMs = settings.MaxLatencyMs;
         LoadDevices(settings);
+        _loading = false;
+    }
+
+    /// <summary>Every edit is saved immediately, so nothing is lost when the app closes without Start.</summary>
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (_loading || e.PropertyName is not { } name || !PersistedProperties.Contains(name))
+            return;
+        try
+        {
+            _store.Save(ToSettings());
+        }
+        catch (Exception ex)
+        {
+            Status = $"Could not save settings: {ex.Message}";
+        }
     }
 
     public ObservableCollection<AudioDevice> InputDevices { get; } = [];
@@ -85,7 +112,6 @@ public sealed partial class MainViewModel : ObservableObject
         Status = $"Connecting to {settings.PeerHost}…";
         try
         {
-            _store.Save(settings);
             var peer = await _streaming.StartAsync(settings);
             IsRunning = true;
             var address = peer.Address.ToString();
@@ -125,13 +151,23 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void LoadDevices(AppSettings selection)
     {
-        Fill(InputDevices, _devices.GetInputDevices());
-        Fill(OutputDevices, _devices.GetOutputDevices());
-        MicCapture = Find(InputDevices, selection.MicCaptureDeviceId);
-        SystemCapture = Find(OutputDevices, selection.SystemCaptureDeviceId);
-        MicPlayback = Find(OutputDevices, selection.MicPlaybackDeviceId);
-        SystemPlayback = Find(OutputDevices, selection.SystemPlaybackDeviceId);
-        OnPropertyChanged(nameof(NoOutputDevices));
+        // Refilling the lists makes bound ComboBoxes write null back; saving that would wipe the stored devices.
+        var wasLoading = _loading;
+        _loading = true;
+        try
+        {
+            Fill(InputDevices, _devices.GetInputDevices());
+            Fill(OutputDevices, _devices.GetOutputDevices());
+            MicCapture = Find(InputDevices, selection.MicCaptureDeviceId);
+            SystemCapture = Find(OutputDevices, selection.SystemCaptureDeviceId);
+            MicPlayback = Find(OutputDevices, selection.MicPlaybackDeviceId);
+            SystemPlayback = Find(OutputDevices, selection.SystemPlaybackDeviceId);
+            OnPropertyChanged(nameof(NoOutputDevices));
+        }
+        finally
+        {
+            _loading = wasLoading;
+        }
     }
 
     private AppSettings ToSettings() => new()

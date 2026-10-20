@@ -95,6 +95,40 @@ public class MainViewModelTests
         vm.MicPlaybackIsAudible.Should().BeFalse();
     }
 
+    // Regression: settings were only saved by a successful Start, so closing the app after setting up lost everything.
+    [Fact]
+    public void EditingSettings_SavesImmediatelyWithoutStart()
+    {
+        var vm = Create();
+
+        vm.PeerHost = "LAPTOP";
+        vm.SystemCapture = Headset;
+
+        _store.Verify(s => s.Save(It.Is<AppSettings>(saved => saved.PeerHost == "LAPTOP" && saved.SystemCaptureDeviceId == "headset")));
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public void LoadingAndRefreshingDevices_DoNotOverwriteSavedSettings()
+    {
+        var vm = Create();
+
+        vm.RefreshDevicesCommand.Execute(null);
+
+        _store.Verify(s => s.Save(It.IsAny<AppSettings>()), Times.Never);
+    }
+
+    [Fact]
+    public void SaveFailure_ShowsStatusInsteadOfCrashing()
+    {
+        _store.Setup(s => s.Save(It.IsAny<AppSettings>())).Throws(new IOException("disk full"));
+        var vm = Create();
+
+        vm.PeerHost = "LAPTOP";
+
+        vm.Status.Should().Contain("disk full");
+    }
+
     [Fact]
     public void NoOutputDevices_WhenOnlyOffIsListed()
     {
@@ -126,7 +160,6 @@ public class MainViewModelTests
 
         vm.Status.Should().Contain("at least 16");
         vm.IsRunning.Should().BeFalse();
-        _store.Verify(s => s.Save(It.IsAny<AppSettings>()), Times.Never);
         _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
