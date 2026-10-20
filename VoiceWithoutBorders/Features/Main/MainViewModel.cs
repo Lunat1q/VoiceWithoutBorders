@@ -23,7 +23,9 @@ public sealed partial class MainViewModel : ObservableObject
     // Nullable: a ComboBox writes null back while its item list is being refilled.
     [ObservableProperty] private AudioDevice? _micCapture = Off;
     [ObservableProperty] private AudioDevice? _systemCapture = Off;
-    [ObservableProperty] private AudioDevice? _micPlayback = Off;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MicPlaybackIsAudible))]
+    private AudioDevice? _micPlayback = Off;
     [ObservableProperty] private AudioDevice? _systemPlayback = Off;
 
     [ObservableProperty]
@@ -59,6 +61,12 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<AudioDevice> OutputDevices { get; } = [];
 
     public bool IsIdle => !IsRunning;
+
+    /// <summary>
+    /// The peer's mic goes to real speakers: it is heard in the room (and by this computer's own mic) instead of
+    /// becoming a microphone that apps can pick.
+    /// </summary>
+    public bool MicPlaybackIsAudible => MicPlayback is { Id.Length: > 0, IsVirtual: false };
 
     /// <summary>Nothing here can play audio (no sound card, no virtual cable), so receiving is impossible.</summary>
     public bool NoOutputDevices => OutputDevices.Count <= 1;

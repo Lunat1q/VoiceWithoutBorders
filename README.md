@@ -23,6 +23,10 @@ The laptop's own microphone is not mixed in: Windows never combines microphones,
 
 Windows only lets drivers create microphones. To make the remote mic look like a local one, install a free virtual audio cable such as [VB-CABLE](https://vb-audio.com/Cable/). Play the incoming mic into **CABLE Input**; apps record from **CABLE Output**.
 
+If you pick real speakers for *Its microphone on* instead, the other computer's voice plays out loud and this computer's own microphone can pick it up again, mixed with the room. The app warns when the device you picked does not look like a virtual cable.
+
+VB-CABLE is not bundled (its license does not allow redistribution); install it from the link above or in the app.
+
 The same applies to a computer with no sound card at all (a server, a VM): it has nothing to play on until a virtual cable is installed. The app shows a warning when it finds no playback devices.
 
 ### Avoid feedback loops

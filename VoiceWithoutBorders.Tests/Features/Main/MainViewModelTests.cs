@@ -75,6 +75,27 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void MicPlaybackIsAudible_OnlyForRealOutputDevices()
+    {
+        var vm = Create();
+        var changed = new List<string?>();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        vm.MicPlayback = Headset;
+        vm.MicPlaybackIsAudible.Should().BeTrue();
+        changed.Should().Contain(nameof(MainViewModel.MicPlaybackIsAudible));
+
+        vm.MicPlayback = Cable;
+        vm.MicPlaybackIsAudible.Should().BeFalse();
+
+        vm.MicPlayback = MainViewModel.Off;
+        vm.MicPlaybackIsAudible.Should().BeFalse();
+
+        vm.MicPlayback = null;
+        vm.MicPlaybackIsAudible.Should().BeFalse();
+    }
+
+    [Fact]
     public void NoOutputDevices_WhenOnlyOffIsListed()
     {
         _devices.Setup(d => d.GetOutputDevices()).Returns([]);

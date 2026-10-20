@@ -20,6 +20,14 @@
             <Setter Property="Margin" Value="0,4" />
         </Style>
         <BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
+        <Style x:Key="Warning" TargetType="Border">
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#FFFFA000" />
+            <Setter Property="Background" Value="#33FFA000" />
+        </Style>
         <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="Margin" Value="0,4" />
             <Setter Property="DisplayMemberPath" Value="Name" />
@@ -40,8 +48,7 @@
     </Window.Resources>
 
     <StackPanel Margin="16">
-        <Border Margin="0,0,0,12" Padding="12,8" CornerRadius="4" BorderThickness="1"
-                BorderBrush="#FFFFA000" Background="#33FFA000"
+        <Border Style="{StaticResource Warning}" Margin="0,0,0,12"
                 Visibility="{Binding NoOutputDevices, Converter={StaticResource VisibleWhenTrue}}">
             <TextBlock TextWrapping="Wrap">
                 This computer has no playback devices, so it cannot play or relay anything it receives.
@@ -119,11 +126,23 @@
                     <Label Content="Its microphone o_n" Target="{Binding ElementName=MicPlaybackBox}" />
                     <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding MicPlayback}" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}">
-                        Pick a virtual cable input (for example "CABLE Input" from
-                        <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>)
-                        so apps here can record it as a microphone.
-                    </TextBlock>
+                    <StackPanel Grid.Row="1" Grid.Column="1">
+                        <TextBlock Style="{StaticResource Hint}">
+                            Pick a virtual cable input (for example "CABLE Input" from
+                            <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>)
+                            so apps here can record it as a microphone.
+                        </TextBlock>
+                        <Border Style="{StaticResource Warning}"
+                                Visibility="{Binding MicPlaybackIsAudible, Converter={StaticResource VisibleWhenTrue}}">
+                            <TextBlock TextWrapping="Wrap">
+                                This plays the other computer's microphone out loud, where this computer's own microphone
+                                can pick it up again. To use it as a microphone here, pick a virtual cable.
+                                No cable listed? Install
+                                <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
+                                then press Refresh devices.
+                            </TextBlock>
+                        </Border>
+                    </StackPanel>
 
                     <Label Grid.Row="2" Content="Its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
                     <ComboBox x:Name="SystemPlaybackBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemPlayback}" />
