@@ -1,0 +1,131 @@
+# Builds, tests, signs (once enabled) and publishes a release.
+#   Release: push a tag vX.Y.Z matching <Version> in the csproj, with a "## X.Y.Z — date" section in CHANGELOG.md.
+#   Dry run: run this workflow by hand on main; it does everything except publish, and uploads the zip as an artifact.
+# Signing uses Azure Artifact Signing through a federated login (no secrets). It is off until the
+# release environment variable SIGNING_ENABLED is "true", which needs an approved identity and a certificate profile.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write   # create the release
+  id-token: write   # federated Azure login
+
+jobs:
+  release:
+    runs-on: windows-latest
+    environment: release
+    env:
+      EXE: ${{ github.workspace }}\publish\win-x64\VoiceWithoutBorders.exe
+      SIGNED: ${{ vars.SIGNING_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $version = Select-Xml -Path VoiceWithoutBorders/VoiceWithoutBorders.csproj -XPath '//Version' | ForEach-Object { $_.Node.InnerText } | Select-Object -First 1
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match <Version>$version</Version> in the csproj."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "zip=VoiceWithoutBorders-$version-win-x64.zip" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        run: dotnet test VoiceWithoutBorders.slnx -c Release
+
+      - name: Publish single-file exe
+        run: >-
+          dotnet publish VoiceWithoutBorders/VoiceWithoutBorders.csproj -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none -o publish/win-x64
+
+      # Runs even with signing off, so every dry run proves the federated login still works.
+      - name: Azure login (federated, no secrets)
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign
+        if: env.SIGNED == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.SIGNING_PROFILE }}
+          files: ${{ env.EXE }}
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Voice Without Borders
+          description-url: https://github.com/${{ github.repository }}
+          # Use the azure/login session above and nothing else.
+          exclude-environment-credential: true
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
+
+      - name: Verify signature
+        if: env.SIGNED == 'true'
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature $env:EXE
+          if ($signature.Status -ne 'Valid') { throw "Signature is $($signature.Status): $($signature.StatusMessage)" }
+          "Signed by: $($signature.SignerCertificate.Subject)"
+
+      - name: Zip and write release notes
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $zip = 'publish/${{ steps.version.outputs.zip }}'
+          Compress-Archive -Path $env:EXE, LICENSE -DestinationPath $zip -CompressionLevel Optimal
+          $sha = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+
+          $changelog = Get-Content CHANGELOG.md -Raw
+          $section = [regex]::Match($changelog, "(?ms)^## $([regex]::Escape($version)) [^\n]*\n(.*?)(?=^## |\z)")
+          if (-not $section.Success) { throw "CHANGELOG.md has no '## $version — date' section." }
+
+          $signingNote = if ($env:SIGNED -eq 'true') {
+            'It is code-signed through Azure Artifact Signing; on a brand-new release SmartScreen may still ask once while its reputation builds: **More info → Run anyway**.'
+          } else {
+            'It is not code-signed yet, so SmartScreen may ask: **More info → Run anyway**.'
+          }
+          (Get-Content .github/release-template.md -Raw).
+            Replace('{{VERSION}}', $version).
+            Replace('{{ZIP}}', '${{ steps.version.outputs.zip }}').
+            Replace('{{SIGNING_NOTE}}', $signingNote).
+            Replace('{{CHANGES}}', $section.Groups[1].Value.Trim()).
+            Replace('{{SHA256}}', $sha) | Set-Content publish/release-notes.md
+          Get-Content publish/release-notes.md | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload dry-run artifact
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.version.outputs.zip }}
+          path: |
+            publish/${{ steps.version.outputs.zip }}
+            publish/release-notes.md
+
+      - name: Publish GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create ${{ github.ref_name }} publish/${{ steps.version.outputs.zip }} --verify-tag
+          --title "Voice Without Borders ${{ steps.version.outputs.version }}" --notes-file publish/release-notes.md

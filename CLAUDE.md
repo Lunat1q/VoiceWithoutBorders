@@ -9,7 +9,10 @@ Windows desktop app that shares microphone and system sound between two PCs on a
 | Build | `dotnet build VoiceWithoutBorders.slnx` | repo root |
 | Tests | `dotnet test VoiceWithoutBorders.slnx` | repo root |
 | Portable build (single self-contained exe) | `dotnet publish VoiceWithoutBorders/VoiceWithoutBorders.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish/win-x64` | repo root |
-| GitHub release | bump `<Version>` in the csproj + a `## x.y.z — date` section in `CHANGELOG.md`, portable build, zip the exe **with `LICENSE`** (GPL requires the text alongside binaries) as `publish/VoiceWithoutBorders-x.y.z-win-x64.zip`, then `gh release create vx.y.z <zip> --title "Voice Without Borders x.y.z" --notes-file <notes>` (notes = that changelog section + SHA-256 of the zip) | repo root |
+| GitHub release | bump `<Version>` in the csproj, add a `## x.y.z — date` section to `CHANGELOG.md`, commit, then `git tag vx.y.z && git push origin vx.y.z`. `.github/workflows/release.yml` tests, builds, signs (when enabled), zips exe + `LICENSE` (GPL needs the text alongside binaries), fills `.github/release-template.md` and publishes. Dry run: `gh workflow run release.yml` on main → zip as a workflow artifact, no release. | repo root |
+
+### Code signing
+Azure Artifact Signing (formerly Trusted Signing), account `VoiceWithoutBorders` (East US, Basic). GitHub Actions logs in with a federated credential on the app registration "VoiceWithoutBorders GitHub Release", valid only for the `release` environment (tags `v*` and `main`); no secrets exist. The app has *Artifact Signing Certificate Profile Signer* on the account. Settings are variables of the `release` environment; signing runs when `SIGNING_ENABLED` is `true`. Never sign locally built binaries, and never add client secrets.
 
 **Do NOT launch the app from agent sessions** (no `dotnet run`): it is a GUI that opens audio devices and a UDP port. Build and test only. If real-device behaviour must be checked, use a throwaway console project in a scratch folder and play into a virtual device, never the user's speakers.
 
