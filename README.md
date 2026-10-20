@@ -36,8 +36,8 @@ The same applies to a computer with no sound card at all (a server, a VM): it ha
 
 ## Getting started
 
-1. Install the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) on both PCs (or build from source, see below).
-2. Run `VoiceWithoutBorders.exe` on both PCs.
+1. Download `VoiceWithoutBorders-<version>-win-x64.zip` from [Releases](https://github.com/Lunat1q/VoiceWithoutBorders/releases/latest) on both PCs and unzip it. It is a single self-contained exe: no .NET install needed (64-bit Windows 10/11).
+2. Run `VoiceWithoutBorders.exe` on both PCs. The exe is not code-signed, so SmartScreen may warn the first time: **More info → Run anyway**.
 3. On each PC enter the **other** computer's name or IP address and the same **UDP port** (default `15300`). The first PC generates a random **shared key**: type that same key on the other PC (or press **New** for a fresh one).
 4. Choose the devices, then press **Start** on both.
 5. Allow the app through Windows Firewall when asked. The prompt only allows **private** networks by default: if Windows marks your network as *Public* (Settings → Network & internet → your connection → Network profile type), switch it to *Private*, or incoming audio is blocked.

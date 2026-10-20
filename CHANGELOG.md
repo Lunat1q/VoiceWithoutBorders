@@ -1,28 +1,27 @@
 # Changelog
 
-## Unreleased
-
-- Minimize to tray, with a tray menu for Start/Stop, toggles and Exit.
-- Always-on-top, click-through overlay with live level bars per stream while streaming.
-- Global hotkeys (default Ctrl+Alt+M / Ctrl+Alt+S) to turn the mic / sound stream on and off, plus an optional start/stop hotkey; all rebindable, with a clear message when a combination is taken.
-- Window split into Stream, Connection, Devices and Hotkeys & overlay tabs; none needs scrolling.
-- Overlay can be unlocked, dragged anywhere and locked again; position is remembered.
-- Fix: tray menu shortcuts were glued to the item text.
-- Heartbeat every second (protocol version 2): shows Connected / Waiting / Different key, and opens the firewall path both ways so audio no longer waits for the other side's first packet. Both computers need this version.
-- Packet counters replaced by Sending / Receiving activity lights.
-- Latency readout: measured network round trip plus estimated end-to-end delay per incoming stream, colour-coded, with a warning when audio is skipped to catch up.
-- Shared key is shown in plain text, generated automatically on first run, and can be regenerated with **New**.
-- Status shows the IP address the peer name resolved to.
-- Fix: computer names that resolve only to IPv6 failed with "No such host is known". The socket is now dual-stack (IPv4 + IPv6).
-- Clearer message when a computer name cannot be found.
-- Warning with a VB-CABLE link when the computer has no playback devices.
-- "Its microphone becomes" lists virtual microphones (e.g. CABLE Output) instead of playback devices; the app plays into the cable's matching playback side.
-
 ## 0.1.0 — 2026-10-20
 
-- Send microphone and/or system sound (WASAPI loopback) to another PC over UDP.
-- Play the peer's microphone and system sound on chosen output devices (virtual cable for remote mic).
-- AES-256-GCM encrypted packets with a shared key; duplicate, late and reflected packets dropped.
-- Latency-capped jitter buffer with configurable max latency.
-- Settings saved to `%AppData%`, shared key protected with DPAPI.
-- Live packet counters with a hint when the shared keys differ.
+First public release.
+
+### Audio
+- Send your microphone and/or whatever an output device is playing (WASAPI loopback) to another PC on the network.
+- The other PC's microphone shows up as a microphone here through a virtual cable (e.g. VB-CABLE's "CABLE Output"); its sound plays on any output device.
+- Per-stream on/off while streaming; a stream that is off is neither sent nor played.
+- Latency-capped jitter buffer with a configurable *Max latency*.
+
+### Connection
+- AES-256-GCM encrypted UDP with a shared key (generated for you, shown so you can type it on the other PC).
+- Heartbeat every second: Connected / Waiting / Different key status, and it opens the Windows Firewall path both ways so audio never waits for the other side to speak first.
+- Works with computer names that resolve to IPv4 or IPv6, or a plain IP address.
+
+### Seeing that it works
+- Sending / Receiving activity lights.
+- Latency readout: measured network round trip plus the estimated delay of each incoming stream, colour-coded, with a warning when audio has to be skipped to keep up.
+
+### Everyday use
+- Tabs: Stream, Connection, Devices, Hotkeys & overlay.
+- Minimize to tray; tray menu for Start/Stop, toggles and Exit.
+- Always-on-top, click-through overlay with live level bars; unlock it to drag it anywhere.
+- Global hotkeys (default Ctrl+Alt+M mic, Ctrl+Alt+S sound, optional start/stop), all rebindable, with a clear message when a combination is taken.
+- Settings save as you change them; the shared key is stored encrypted with Windows DPAPI.

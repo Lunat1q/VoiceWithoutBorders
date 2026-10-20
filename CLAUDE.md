@@ -9,6 +9,7 @@ Windows desktop app that shares microphone and system sound between two PCs on a
 | Build | `dotnet build VoiceWithoutBorders.slnx` | repo root |
 | Tests | `dotnet test VoiceWithoutBorders.slnx` | repo root |
 | Portable build (single self-contained exe) | `dotnet publish VoiceWithoutBorders/VoiceWithoutBorders.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish/win-x64` | repo root |
+| GitHub release | bump `<Version>` in the csproj + a `## x.y.z — date` section in `CHANGELOG.md`, portable build, zip the exe as `publish/VoiceWithoutBorders-x.y.z-win-x64.zip`, then `gh release create vx.y.z <zip> --title "Voice Without Borders x.y.z" --notes-file <notes>` (notes = that changelog section + SHA-256 of the zip) | repo root |
 
 **Do NOT launch the app from agent sessions** (no `dotnet run`): it is a GUI that opens audio devices and a UDP port. Build and test only. If real-device behaviour must be checked, use a throwaway console project in a scratch folder and play into a virtual device, never the user's speakers.
 
