@@ -24,9 +24,8 @@ public sealed partial class MainViewModel : ObservableObject
     // Nullable: a ComboBox writes null back while its item list is being refilled.
     [ObservableProperty] private AudioDevice? _micCapture = Off;
     [ObservableProperty] private AudioDevice? _systemCapture = Off;
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MicPlaybackIsAudible))]
-    private AudioDevice? _micPlayback = Off;
+    /// <summary>A virtual microphone (named as apps see it); its id is the cable's playback side.</summary>
+    [ObservableProperty] private AudioDevice? _micPlayback = Off;
     [ObservableProperty] private AudioDevice? _systemPlayback = Off;
 
     [ObservableProperty]
@@ -87,13 +86,12 @@ public sealed partial class MainViewModel : ObservableObject
 
     public ObservableCollection<AudioDevice> OutputDevices { get; } = [];
 
+    public ObservableCollection<AudioDevice> VirtualMicrophones { get; } = [];
+
     public bool IsIdle => !IsRunning;
 
-    /// <summary>
-    /// The peer's mic goes to real speakers: it is heard in the room (and by this computer's own mic) instead of
-    /// becoming a microphone that apps can pick.
-    /// </summary>
-    public bool MicPlaybackIsAudible => MicPlayback is { Id.Length: > 0, IsVirtual: false };
+    /// <summary>No virtual cable installed, so the other computer's mic cannot show up as a microphone here.</summary>
+    public bool NoVirtualMicrophone => VirtualMicrophones.Count <= 1;
 
     /// <summary>Nothing here can play audio (no sound card, no virtual cable), so receiving is impossible.</summary>
     public bool NoOutputDevices => OutputDevices.Count <= 1;
@@ -158,11 +156,13 @@ public sealed partial class MainViewModel : ObservableObject
         {
             Fill(InputDevices, _devices.GetInputDevices());
             Fill(OutputDevices, _devices.GetOutputDevices());
+            Fill(VirtualMicrophones, _devices.GetVirtualMicrophones());
             MicCapture = Find(InputDevices, selection.MicCaptureDeviceId);
             SystemCapture = Find(OutputDevices, selection.SystemCaptureDeviceId);
-            MicPlayback = Find(OutputDevices, selection.MicPlaybackDeviceId);
+            MicPlayback = Find(VirtualMicrophones, selection.MicPlaybackDeviceId);
             SystemPlayback = Find(OutputDevices, selection.SystemPlaybackDeviceId);
             OnPropertyChanged(nameof(NoOutputDevices));
+            OnPropertyChanged(nameof(NoVirtualMicrophone));
         }
         finally
         {

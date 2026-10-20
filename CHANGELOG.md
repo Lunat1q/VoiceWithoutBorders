@@ -7,7 +7,7 @@
 - Fix: computer names that resolve only to IPv6 failed with "No such host is known". The socket is now dual-stack (IPv4 + IPv6).
 - Clearer message when a computer name cannot be found.
 - Warning with a VB-CABLE link when the computer has no playback devices.
-- Warning when the peer's microphone is set to play on real speakers instead of a virtual cable.
+- "Its microphone becomes" lists virtual microphones (e.g. CABLE Output) instead of playback devices; the app plays into the cable's matching playback side.
 
 ## 0.1.0 — 2026-10-20
 

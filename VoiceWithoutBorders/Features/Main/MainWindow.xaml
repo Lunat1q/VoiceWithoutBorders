@@ -123,22 +123,17 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Label Content="Play its microphone i_nto" Target="{Binding ElementName=MicPlaybackBox}" />
-                    <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding MicPlayback}" />
+                    <Label Content="Its microphone _becomes" Target="{Binding ElementName=MicPlaybackBox}" />
+                    <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding VirtualMicrophones}" SelectedItem="{Binding MicPlayback}" />
 
                     <StackPanel Grid.Row="1" Grid.Column="1">
-                        <TextBlock Style="{StaticResource Hint}">
-                            Playback devices on purpose: audio can only be played into a device. Pick the playback side
-                            of a virtual cable ("CABLE Input" from
-                            <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>);
-                            apps here then choose its recording side ("CABLE Output") as their microphone.
-                        </TextBlock>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Apps here (Teams, Discord…) pick this microphone to hear the other computer's mic." />
                         <Border Style="{StaticResource Warning}"
-                                Visibility="{Binding MicPlaybackIsAudible, Converter={StaticResource VisibleWhenTrue}}">
+                                Visibility="{Binding NoVirtualMicrophone, Converter={StaticResource VisibleWhenTrue}}">
                             <TextBlock TextWrapping="Wrap">
-                                This plays the other computer's microphone out loud, where this computer's own microphone
-                                can pick it up again. To use it as a microphone here, pick a virtual cable.
-                                No cable listed? Install
+                                No virtual microphone on this computer. Windows only lets a driver create microphones:
+                                install the free
                                 <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
                                 then press Refresh devices.
                             </TextBlock>

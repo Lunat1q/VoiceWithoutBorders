@@ -12,20 +12,18 @@ Headset is plugged into **Desk PC**. You also want to talk and listen on **Lapto
 |---|---|---|
 | My microphone | Headset mic | Off |
 | Sound playing on | Off | Speakers (the device apps play to) |
-| Play its microphone into | Off | **CABLE Input** (virtual cable) |
+| Its microphone becomes | Off | **CABLE Output** (virtual microphone) |
 | Play its sound on | Headset | Off |
 
-On the laptop, apps (Teams, Discord, Zoom…) then use **CABLE Output** as their microphone. In Windows sound settings, make **CABLE Output** both the *default* and the *default communications* recording device, so apps that just use "default" pick it too.
+On the laptop, apps (Teams, Discord, Zoom…) then use **CABLE Output** as their microphone: it carries the desk PC's headset mic. In Windows sound settings, make **CABLE Output** both the *default* and the *default communications* recording device, so apps that just use "default" pick it too.
 
 The laptop's own microphone is not mixed in: Windows never combines microphones, and each app records from exactly one input. Only the headset mic reaches the call, even if you sit right next to the laptop.
 
 ### Why a virtual cable?
 
-Windows only lets drivers create microphones. To make the remote mic look like a local one, install a free virtual audio cable such as [VB-CABLE](https://vb-audio.com/Cable/). Play the incoming mic into **CABLE Input**; apps record from **CABLE Output**.
+An app cannot push audio into a microphone: Windows only lets drivers create microphones. A free virtual audio cable such as [VB-CABLE](https://vb-audio.com/Cable/) adds a pair of devices: whatever is played into **CABLE Input** comes out of the microphone **CABLE Output**.
 
-That is why *Play its microphone into* lists playback devices, not microphones: the app plays into the cable's playback side, and the cable hands it to apps as a recording device.
-
-If you pick real speakers for *Play its microphone into* instead, the other computer's voice plays out loud and this computer's own microphone can pick it up again, mixed with the room. The app warns when the device you picked does not look like a virtual cable.
+*Its microphone becomes* lists only such virtual microphones, by the name apps show. The app plays the incoming mic into the matching playback side for you, so a real microphone or speakers cannot be picked by mistake.
 
 VB-CABLE is not bundled (its license does not allow redistribution); install it from the link above or in the app.
 

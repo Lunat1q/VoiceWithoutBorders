@@ -13,7 +13,9 @@ public class MainViewModelTests
 {
     private static readonly AudioDevice Mic = new("mic", "USB Microphone");
     private static readonly AudioDevice Headset = new("headset", "Headset");
-    private static readonly AudioDevice Cable = new("cable", "CABLE Input");
+    private static readonly AudioDevice CableInput = new("cable", "CABLE Input");
+    // Named after the microphone apps see, id of the cable's playback side.
+    private static readonly AudioDevice Cable = new("cable", "CABLE Output");
 
     private readonly Mock<IStreamingService> _streaming = new();
     private readonly Mock<ISettingsStore> _store = new();
@@ -24,7 +26,8 @@ public class MainViewModelTests
         _streaming.Setup(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new IPEndPoint(IPAddress.Parse("192.168.1.20"), 15300));
         _devices.Setup(d => d.GetInputDevices()).Returns([Mic]);
-        _devices.Setup(d => d.GetOutputDevices()).Returns([Headset, Cable]);
+        _devices.Setup(d => d.GetOutputDevices()).Returns([Headset, CableInput]);
+        _devices.Setup(d => d.GetVirtualMicrophones()).Returns([Cable]);
         _store.Setup(s => s.Load()).Returns(new AppSettings
         {
             PeerHost = "OFFICE-PC",
@@ -47,8 +50,10 @@ public class MainViewModelTests
         vm.SystemPlayback.Should().Be(Headset);
         vm.MicPlayback.Should().Be(MainViewModel.Off, "the saved device is no longer present");
         vm.SystemCapture.Should().Be(MainViewModel.Off);
-        vm.OutputDevices.Should().Equal(MainViewModel.Off, Headset, Cable);
+        vm.OutputDevices.Should().Equal(MainViewModel.Off, Headset, CableInput);
+        vm.VirtualMicrophones.Should().Equal(MainViewModel.Off, Cable);
         vm.NoOutputDevices.Should().BeFalse();
+        vm.NoVirtualMicrophone.Should().BeFalse();
         _store.Verify(s => s.Save(It.IsAny<AppSettings>()), Times.Never, "an existing key is kept as is");
     }
 
@@ -75,24 +80,22 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void MicPlaybackIsAudible_OnlyForRealOutputDevices()
+    public void NoVirtualMicrophone_WhenNoCableInstalled()
     {
+        _devices.Setup(d => d.GetVirtualMicrophones()).Returns([]);
+
         var vm = Create();
-        var changed = new List<string?>();
-        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 
-        vm.MicPlayback = Headset;
-        vm.MicPlaybackIsAudible.Should().BeTrue();
-        changed.Should().Contain(nameof(MainViewModel.MicPlaybackIsAudible));
+        vm.NoVirtualMicrophone.Should().BeTrue();
+        vm.VirtualMicrophones.Should().Equal(MainViewModel.Off);
+    }
 
-        vm.MicPlayback = Cable;
-        vm.MicPlaybackIsAudible.Should().BeFalse();
+    [Fact]
+    public void SavedCable_IsSelectedAsMicrophone()
+    {
+        _store.Setup(s => s.Load()).Returns(new AppSettings { SharedKey = "0123456789abcdef", MicPlaybackDeviceId = "cable" });
 
-        vm.MicPlayback = MainViewModel.Off;
-        vm.MicPlaybackIsAudible.Should().BeFalse();
-
-        vm.MicPlayback = null;
-        vm.MicPlaybackIsAudible.Should().BeFalse();
+        Create().MicPlayback.Should().Be(Cable);
     }
 
     // Regression: settings were only saved by a successful Start, so closing the app after setting up lost everything.
