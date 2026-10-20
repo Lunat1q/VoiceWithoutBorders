@@ -2,7 +2,7 @@
 
 ## 0.1.0 — 2026-10-20
 
-First public release.
+First public release, licensed under GPL-3.0-or-later.
 
 ### Audio
 - Send your microphone and/or whatever an output device is playing (WASAPI loopback) to another PC on the network.

@@ -99,3 +99,13 @@ dotnet run --project VoiceWithoutBorders
 ## Tech stack
 
 .NET 10 · WPF (Fluent theme) · [NAudio](https://github.com/naudio/NAudio) · CommunityToolkit.Mvvm · Microsoft.Extensions.Hosting · xUnit, FluentAssertions, Moq
+
+## License
+
+Copyright (C) 2026 Lunat1q
+
+Voice Without Borders is free software: you can redistribute it and/or modify it under the terms of the [GNU General Public License](LICENSE) as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [LICENSE](LICENSE) for details.
+
+Third-party libraries keep their own licenses (NAudio, CommunityToolkit.Mvvm and Microsoft.Extensions are MIT). VB-CABLE is a separate product by VB-Audio and is not included.
