@@ -2,9 +2,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VoiceWithoutBorders.Features.Overlay;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
+using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Features.Main;
 
@@ -28,8 +30,15 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private AudioDevice? _micPlayback = Off;
     [ObservableProperty] private AudioDevice? _systemPlayback = Off;
 
+    [ObservableProperty] private bool _micEnabled = true;
+    [ObservableProperty] private bool _soundEnabled = true;
+
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsIdle))]
+    [NotifyPropertyChangedFor(nameof(OverlayVisible))]
+    private bool _showOverlay = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsIdle), nameof(OverlayVisible))]
     [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(RefreshDevicesCommand), nameof(NewSharedKeyCommand))]
     private bool _isRunning;
 
@@ -40,6 +49,7 @@ public sealed partial class MainViewModel : ObservableObject
     [
         nameof(PeerHost), nameof(Port), nameof(SharedKey), nameof(MaxLatencyMs),
         nameof(MicCapture), nameof(SystemCapture), nameof(MicPlayback), nameof(SystemPlayback),
+        nameof(MicEnabled), nameof(SoundEnabled), nameof(ShowOverlay),
     ];
 
     // True while settings or device lists are being (re)loaded, so those writes are not saved back.
@@ -62,6 +72,9 @@ public sealed partial class MainViewModel : ObservableObject
         Port = settings.Port;
         SharedKey = settings.SharedKey;
         MaxLatencyMs = settings.MaxLatencyMs;
+        MicEnabled = settings.MicEnabled;
+        SoundEnabled = settings.SoundEnabled;
+        ShowOverlay = settings.ShowOverlay;
         LoadDevices(settings);
         _loading = false;
     }
@@ -90,6 +103,18 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool IsIdle => !IsRunning;
 
+    public OverlayViewModel Overlay { get; } = new();
+
+    public bool OverlayVisible => IsRunning && ShowOverlay;
+
+    partial void OnMicEnabledChanged(bool value) => _streaming.SetEnabled(StreamKind.Microphone, value);
+
+    partial void OnSoundEnabledChanged(bool value) => _streaming.SetEnabled(StreamKind.SystemAudio, value);
+
+    /// <summary>Called by the overlay on every animation frame.</summary>
+    public void TickOverlay(double elapsedSeconds) =>
+        Overlay.Tick(_streaming.ReadLevels(), MicEnabled, SoundEnabled, elapsedSeconds);
+
     /// <summary>No virtual cable installed, so the other computer's mic cannot show up as a microphone here.</summary>
     public bool NoVirtualMicrophone => VirtualMicrophones.Count <= 1;
 
@@ -111,6 +136,7 @@ public sealed partial class MainViewModel : ObservableObject
         try
         {
             var peer = await _streaming.StartAsync(settings);
+            Overlay.Configure(settings);
             IsRunning = true;
             var address = peer.Address.ToString();
             var target = settings.PeerHost == address ? address : $"{settings.PeerHost} ({address})";
@@ -180,6 +206,9 @@ public sealed partial class MainViewModel : ObservableObject
         SystemCaptureDeviceId = IdOf(SystemCapture),
         MicPlaybackDeviceId = IdOf(MicPlayback),
         SystemPlaybackDeviceId = IdOf(SystemPlayback),
+        MicEnabled = MicEnabled,
+        SoundEnabled = SoundEnabled,
+        ShowOverlay = ShowOverlay,
     };
 
     private static void Fill(ObservableCollection<AudioDevice> target, IEnumerable<AudioDevice> devices)

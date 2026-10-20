@@ -28,6 +28,15 @@ public sealed record AppSettings
     /// <summary>Jitter buffer cap. Lower is snappier, higher survives a busy network.</summary>
     public int MaxLatencyMs { get; init; } = 120;
 
+    /// <summary>Microphone stream on (sent and played). Toggled with a hotkey while streaming.</summary>
+    public bool MicEnabled { get; init; } = true;
+
+    /// <summary>System sound stream on (sent and played). Toggled with a hotkey while streaming.</summary>
+    public bool SoundEnabled { get; init; } = true;
+
+    /// <summary>Small always-on-top activity indicator while streaming.</summary>
+    public bool ShowOverlay { get; init; } = true;
+
     public IReadOnlyList<string> Validate()
     {
         var errors = new List<string>();

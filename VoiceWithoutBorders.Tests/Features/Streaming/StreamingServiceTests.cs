@@ -73,6 +73,39 @@ public class StreamingServiceTests
         _player.Verify(p => p.Write(It.IsAny<ArraySegment<byte>>()), Times.Once);
     }
 
+    // 16-bit little-endian samples 0x2000 (8192) and 0xC000 (-16384): peak 16384 = 0.5.
+    private static readonly byte[] HalfScale = [0x00, 0x20, 0x00, 0xC0];
+
+    [Fact]
+    public async Task DisabledStream_IsNeitherSentNorPlayed_UntilEnabledAgain()
+    {
+        await _sut.StartAsync(Settings with { MicEnabled = false, SoundEnabled = false });
+
+        _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(HalfScale));
+        _transport.Raise(t => t.AudioReceived += null, StreamKind.SystemAudio, new ArraySegment<byte>(HalfScale));
+
+        _transport.Verify(t => t.Send(It.IsAny<StreamKind>(), It.IsAny<ArraySegment<byte>>()), Times.Never);
+        _player.Verify(p => p.Write(It.IsAny<ArraySegment<byte>>()), Times.Never);
+        _sut.ReadLevels().Should().Be(new StreamLevels(0, 0, 0, 0));
+
+        _sut.SetEnabled(StreamKind.Microphone, true);
+        _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(HalfScale));
+
+        _transport.Verify(t => t.Send(StreamKind.Microphone, It.IsAny<ArraySegment<byte>>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ReadLevels_ReportsPeakPerStreamAndResets()
+    {
+        await _sut.StartAsync(Settings);
+
+        _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(HalfScale));
+        _transport.Raise(t => t.AudioReceived += null, StreamKind.SystemAudio, new ArraySegment<byte>(HalfScale));
+
+        _sut.ReadLevels().Should().Be(new StreamLevels(MicSent: 0.5f, SoundSent: 0, MicReceived: 0, SoundReceived: 0.5f));
+        _sut.ReadLevels().Should().Be(new StreamLevels(0, 0, 0, 0), "reading resets the peaks");
+    }
+
     [Fact]
     public async Task Stop_ReleasesEverythingAndStopsPlayback()
     {

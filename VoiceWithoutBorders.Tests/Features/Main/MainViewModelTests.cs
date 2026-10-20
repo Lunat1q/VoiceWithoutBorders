@@ -6,6 +6,7 @@ using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
 using VoiceWithoutBorders.Infrastructure.Network;
+using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Tests.Features.Main;
 
@@ -214,6 +215,52 @@ public class MainViewModelTests
         _streaming.Verify(s => s.Stop());
         vm.IsRunning.Should().BeFalse();
         vm.Status.Should().Be("Stopped");
+    }
+
+    [Fact]
+    public void ToggleMicAndSound_ApplyLiveAndAreSaved()
+    {
+        var vm = Create();
+
+        vm.MicEnabled = false;
+        vm.SoundEnabled = false;
+
+        _streaming.Verify(s => s.SetEnabled(StreamKind.Microphone, false));
+        _streaming.Verify(s => s.SetEnabled(StreamKind.SystemAudio, false));
+        _store.Verify(s => s.Save(It.Is<AppSettings>(saved => !saved.MicEnabled && !saved.SoundEnabled)));
+    }
+
+    [Fact]
+    public void Constructor_RestoresSavedToggles()
+    {
+        _store.Setup(s => s.Load()).Returns(new AppSettings
+        {
+            SharedKey = "0123456789abcdef", MicEnabled = false, SoundEnabled = true, ShowOverlay = false,
+        });
+
+        var vm = Create();
+
+        vm.MicEnabled.Should().BeFalse();
+        vm.SoundEnabled.Should().BeTrue();
+        vm.ShowOverlay.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task OverlayVisible_OnlyWhileStreamingAndEnabled()
+    {
+        var vm = Create();
+        vm.OverlayVisible.Should().BeFalse("not streaming yet");
+
+        await vm.StartCommand.ExecuteAsync(null);
+        vm.OverlayVisible.Should().BeTrue();
+        vm.Overlay.Indicators.Should().HaveCount(2, "mic is sent and sound is received");
+
+        vm.ShowOverlay = false;
+        vm.OverlayVisible.Should().BeFalse();
+
+        vm.ShowOverlay = true;
+        vm.StopCommand.Execute(null);
+        vm.OverlayVisible.Should().BeFalse();
     }
 
     [Fact]

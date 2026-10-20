@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -26,6 +27,15 @@ public static class WireFormat
                 pcm.Slice(offset, count).CopyTo(scratch);
             emit(new ArraySegment<byte>(scratch, 0, count));
         }
+    }
+
+    /// <summary>Loudest 16-bit sample in the chunk, 0 to 32768.</summary>
+    public static int Peak(ReadOnlySpan<byte> pcm)
+    {
+        var peak = 0;
+        foreach (var sample in MemoryMarshal.Cast<byte, short>(pcm))
+            peak = Math.Max(peak, Math.Abs((int)sample));
+        return peak;
     }
 
     /// <summary>WASAPI playback never resamples, so convert when the device runs at another rate.</summary>

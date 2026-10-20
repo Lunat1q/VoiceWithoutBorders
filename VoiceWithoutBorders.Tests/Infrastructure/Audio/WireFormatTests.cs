@@ -30,6 +30,18 @@ public class WireFormatTests
         sent.Should().HaveCount(100).And.OnlyContain(b => b == 0);
     }
 
+    [Theory]
+    [InlineData(new short[] { 0, 0, 0, 0 }, 0)]
+    [InlineData(new short[] { 100, -2000, 1500, 3 }, 2000)]
+    [InlineData(new short[] { short.MinValue, 0 }, 32768)] // no overflow on the most negative sample
+    public void Peak_ReturnsLoudestAbsoluteSample(short[] samples, int expected)
+    {
+        var pcm = new byte[samples.Length * 2];
+        Buffer.BlockCopy(samples, 0, pcm, 0, pcm.Length);
+
+        WireFormat.Peak(pcm).Should().Be(expected);
+    }
+
     [Fact]
     public void ResampleTo_SameRate_ReturnsSource()
     {

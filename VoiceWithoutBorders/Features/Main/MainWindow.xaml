@@ -149,6 +149,27 @@
             </GroupBox>
         </StackPanel>
 
+        <!-- Outside the idle-only panel: these work live while streaming. -->
+        <GroupBox Header="While streaming">
+            <StackPanel>
+                <CheckBox Margin="0,4" IsChecked="{Binding MicEnabled}">
+                    <StackPanel Orientation="Horizontal">
+                        <AccessText Text="M_icrophone on" />
+                        <TextBlock Margin="8,0,0,0" Opacity="0.6" Text="{x:Static main:Hotkeys.ToggleMicText}" />
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Margin="0,4" IsChecked="{Binding SoundEnabled}">
+                    <StackPanel Orientation="Horizontal">
+                        <AccessText Text="Soun_d on" />
+                        <TextBlock Margin="8,0,0,0" Opacity="0.6" Text="{x:Static main:Hotkeys.ToggleSoundText}" />
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Margin="0,4" Content="Show o_verlay at the top of the screen" IsChecked="{Binding ShowOverlay}" />
+                <TextBlock Style="{StaticResource Hint}"
+                           Text="The shortcuts work from any app. Minimizing hides the window to the tray; double-click the tray icon to bring it back." />
+            </StackPanel>
+        </GroupBox>
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="_Refresh devices" Command="{Binding RefreshDevicesCommand}" />
             <Button Content="S_tart" Command="{Binding StartCommand}" IsDefault="True" />

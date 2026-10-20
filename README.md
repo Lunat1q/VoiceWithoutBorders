@@ -46,6 +46,12 @@ The status line shows the address the name resolved to, plus packets sent, recei
 
 **Max latency** caps the jitter buffer. Lower values feel snappier; raise it if you hear crackles on Wi‑Fi.
 
+## While streaming
+
+- **Tray:** minimizing hides the window to the notification area. Double-click the icon to bring it back; right-click for Start/Stop, the toggles below, and Exit.
+- **Overlay:** a small pill at the top of the screen shows each active stream (↑ sent, ↓ received) with bars that follow the audio level. It is click-through and never takes focus. Turn it off under *While streaming* or in the tray menu.
+- **Hotkeys** (work from any app): **Ctrl+Alt+M** turns the microphone stream on/off, **Ctrl+Alt+S** the sound stream. A stream that is off is neither sent nor played on this computer; the overlay shows it crossed out.
+
 ## How it works
 
 - Audio is captured with WASAPI (loopback capture for system sound) and converted by Windows to 48 kHz, 16-bit stereo PCM.
@@ -77,7 +83,7 @@ dotnet run --project VoiceWithoutBorders
 - Two computers only; no automatic discovery (enter the name or IP).
 - Uncompressed audio. Opus would cut bandwidth by about 20x.
 - Unplugging a device while streaming needs a Stop/Start.
-- No tray icon or auto-start yet.
+- Hotkeys are fixed (Ctrl+Alt+M / Ctrl+Alt+S); no auto-start with Windows yet.
 
 ## Tech stack
 

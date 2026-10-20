@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Minimize to tray, with a tray menu for Start/Stop, toggles and Exit.
+- Always-on-top, click-through overlay with live level bars per stream while streaming.
+- Global hotkeys Ctrl+Alt+M / Ctrl+Alt+S to turn the mic / sound stream on and off.
+
 - Shared key is shown in plain text, generated automatically on first run, and can be regenerated with **New**.
 - Status shows the IP address the peer name resolved to.
 - Fix: computer names that resolve only to IPv6 failed with "No such host is known". The socket is now dual-stack (IPv4 + IPv6).

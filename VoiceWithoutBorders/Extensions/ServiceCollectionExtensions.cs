@@ -1,6 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VoiceWithoutBorders.Features.Main;
+using VoiceWithoutBorders.Features.Overlay;
+using VoiceWithoutBorders.Features.Tray;
+using VoiceWithoutBorders.Infrastructure.Interop;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
@@ -31,5 +34,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddUi(this IServiceCollection services) =>
         services
             .AddSingleton<MainViewModel>()
-            .AddSingleton<MainWindow>();
+            .AddSingleton<MainWindow>()
+            .AddSingleton<OverlayWindow>()
+            .AddSingleton<TrayIcon>()
+            .AddSingleton<GlobalHotkeys>();
 }
