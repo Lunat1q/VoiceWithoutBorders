@@ -17,7 +17,8 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
-    environment: release
+    # Releases only from v* tags; dry runs only from main. (Re-enabling signing adds `environment: release` back.)
+    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
     env:
       EXE: ${{ github.workspace }}\publish\win-x64\VoiceWithoutBorders.exe
       SIGNED: ${{ vars.SIGNING_ENABLED == 'true' }}
