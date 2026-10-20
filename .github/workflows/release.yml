@@ -1,8 +1,8 @@
 # Builds, tests, signs (once enabled) and publishes a release.
 #   Release: push a tag vX.Y.Z matching <Version> in the csproj, with a "## X.Y.Z — date" section in CHANGELOG.md.
 #   Dry run: run this workflow by hand on main; it does everything except publish, and uploads the zip as an artifact.
-# Signing uses Azure Artifact Signing through a federated login (no secrets). It is off until the
-# release environment variable SIGNING_ENABLED is "true", which needs an approved identity and a certificate profile.
+# Signing (Azure Artifact Signing through a federated login, no secrets) is currently OFF: releases ship unsigned.
+# It turns on when the release environment variable SIGNING_ENABLED is "true"; see "Code signing" in CLAUDE.md.
 name: Release
 
 on:
@@ -48,8 +48,8 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
           -p:DebugType=none -o publish/win-x64
 
-      # Runs even with signing off, so every dry run proves the federated login still works.
       - name: Azure login (federated, no secrets)
+        if: env.SIGNED == 'true'
         uses: azure/login@v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
