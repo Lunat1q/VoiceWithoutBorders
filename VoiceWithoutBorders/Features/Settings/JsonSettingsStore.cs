@@ -2,6 +2,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace VoiceWithoutBorders.Features.Settings;
@@ -16,7 +17,7 @@ public sealed class JsonSettingsStore(string path, ILogger<JsonSettingsStore> lo
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VoiceWithoutBorders", "settings.json");
 
     private static readonly byte[] Entropy = "VoiceWithoutBorders.SharedKey"u8.ToArray();
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, Converters = { new JsonStringEnumConverter() } };
 
     public AppSettings Load()
     {
@@ -24,7 +25,7 @@ public sealed class JsonSettingsStore(string path, ILogger<JsonSettingsStore> lo
             return new AppSettings();
         try
         {
-            var stored = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path)) ?? new AppSettings();
+            var stored = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), JsonOptions) ?? new AppSettings();
             return stored with { SharedKey = Unprotect(stored.SharedKey) };
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)

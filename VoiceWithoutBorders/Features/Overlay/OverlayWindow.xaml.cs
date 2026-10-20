@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using VoiceWithoutBorders.Features.Main;
@@ -9,12 +10,14 @@ using VoiceWithoutBorders.Infrastructure.Interop;
 namespace VoiceWithoutBorders.Features.Overlay;
 
 /// <summary>
-/// Always-on-top pill at the top of the primary screen while streaming. Click-through and never focused, so it
-/// cannot get in the way of games or full-screen apps.
+/// Always-on-top activity pill. Locked (the default) it is click-through and never focused, so it cannot get in the
+/// way of games; unlocked it takes the mouse and can be dragged anywhere, and the spot is remembered.
 /// </summary>
 public partial class OverlayWindow : Window
 {
     private const double TopMargin = 8;
+    private static readonly Brush UnlockedBorder = new SolidColorBrush(Color.FromRgb(0x26, 0xC6, 0xDA));
+    private static readonly Brush LockedBorder = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
 
     private readonly MainViewModel _main;
     private readonly Stopwatch _clock = new();
@@ -25,24 +28,39 @@ public partial class OverlayWindow : Window
         InitializeComponent();
         _main = main;
         DataContext = main.Overlay;
-        SourceInitialized += (_, _) => MakeClickThrough();
-        SizeChanged += (_, _) => PlaceAtTopCenter();
+        SourceInitialized += (_, _) => ApplyLock();
+        SizeChanged += (_, _) => Place();
+        MouseLeftButtonDown += OnMouseDown;
         main.PropertyChanged += OnMainPropertyChanged;
     }
 
     private void OnMainPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(MainViewModel.OverlayVisible))
-            return;
-        if (_main.OverlayVisible)
+        switch (e.PropertyName)
+        {
+            case nameof(MainViewModel.OverlayVisible):
+                UpdateVisibility();
+                break;
+            case nameof(MainViewModel.OverlayUnlocked):
+                ApplyLock();
+                break;
+            case nameof(MainViewModel.OverlayLeft) or nameof(MainViewModel.OverlayTop):
+                Place();
+                break;
+        }
+    }
+
+    private void UpdateVisibility()
+    {
+        if (_main.OverlayVisible && !IsVisible)
         {
             Show();
-            PlaceAtTopCenter();
+            Place();
             _clock.Restart();
             _lastFrame = TimeSpan.Zero;
             CompositionTarget.Rendering += OnFrame;
         }
-        else
+        else if (!_main.OverlayVisible && IsVisible)
         {
             CompositionTarget.Rendering -= OnFrame;
             Hide();
@@ -56,18 +74,39 @@ public partial class OverlayWindow : Window
         _lastFrame = now;
     }
 
-    private void PlaceAtTopCenter()
+    private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (!_main.OverlayUnlocked)
+            return;
+        DragMove(); // returns when the button is released
+        _main.MoveOverlay(Left, Top);
+    }
+
+    /// <summary>Saved spot if it is still on a connected screen, otherwise top centre of the primary screen.</summary>
+    private void Place()
+    {
+        var screens = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+        if (_main.OverlayLeft is { } left && _main.OverlayTop is { } top && screens.Contains(new Point(left + ActualWidth / 2, top)))
+        {
+            Left = left;
+            Top = top;
+            return;
+        }
         var area = SystemParameters.WorkArea;
         Left = area.Left + (area.Width - ActualWidth) / 2;
         Top = area.Top + TopMargin;
     }
 
-    private void MakeClickThrough()
+    private void ApplyLock()
     {
+        Pill.BorderBrush = _main.OverlayUnlocked ? UnlockedBorder : LockedBorder;
         var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero)
+            return;
         var style = NativeMethods.GetWindowLongPtr(handle, NativeMethods.GwlExStyle).ToInt64();
-        style |= NativeMethods.WsExTransparent | NativeMethods.WsExToolWindow | NativeMethods.WsExNoActivate;
+        style |= NativeMethods.WsExToolWindow | NativeMethods.WsExNoActivate;
+        style = _main.OverlayUnlocked ? style & ~NativeMethods.WsExTransparent : style | NativeMethods.WsExTransparent;
         NativeMethods.SetWindowLongPtr(handle, NativeMethods.GwlExStyle, new IntPtr(style));
     }
 }

@@ -4,7 +4,10 @@
 
 - Minimize to tray, with a tray menu for Start/Stop, toggles and Exit.
 - Always-on-top, click-through overlay with live level bars per stream while streaming.
-- Global hotkeys Ctrl+Alt+M / Ctrl+Alt+S to turn the mic / sound stream on and off.
+- Global hotkeys (default Ctrl+Alt+M / Ctrl+Alt+S) to turn the mic / sound stream on and off, plus an optional start/stop hotkey; all rebindable, with a clear message when a combination is taken.
+- Window split into Stream, Setup and Hotkeys & overlay tabs.
+- Overlay can be unlocked, dragged anywhere and locked again; position is remembered.
+- Fix: tray menu shortcuts were glued to the item text.
 
 - Shared key is shown in plain text, generated automatically on first run, and can be regenerated with **New**.
 - Status shows the IP address the peer name resolved to.

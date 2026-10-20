@@ -43,7 +43,7 @@ Windows desktop app that shares microphone and system sound between two PCs on a
 ### File size discipline
 - **Hard limit: ~300 lines per file.**
 - Window over ~300 lines of XAML → extract `UserControl`s into the feature folder.
-- View model over ~300 lines → split into child view models.
+- View model over ~300 lines → split into child view models, or partial files by concern (`MainViewModel.LiveControls.cs`) when the parts share autosave state.
 - Same for services: split into focused sub-services.
 
 ## Coding Conventions

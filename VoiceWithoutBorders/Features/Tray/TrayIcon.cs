@@ -19,24 +19,26 @@ public sealed class TrayIcon : IDisposable
     public TrayIcon(MainViewModel vm, MainWindow window)
     {
         _vm = vm;
-        var menu = new ContextMenuStrip();
-        menu.Items.Add("Open Voice Without Borders", null, (_, _) => window.Restore());
-        var start = menu.Items.Add("Start", null, async (_, _) => await vm.StartCommand.ExecuteAsync(null));
-        var stop = menu.Items.Add("Stop", null, (_, _) => vm.StopCommand.Execute(null));
-        menu.Items.Add(new ToolStripSeparator());
-        var mic = new ToolStripMenuItem($"Microphone on\t{Hotkeys.ToggleMicText}", null, (_, _) => vm.MicEnabled = !vm.MicEnabled);
-        var sound = new ToolStripMenuItem($"Sound on\t{Hotkeys.ToggleSoundText}", null, (_, _) => vm.SoundEnabled = !vm.SoundEnabled);
+        var menu = new ContextMenuStrip { ShowCheckMargin = true, ShowImageMargin = false };
+        var open = new ToolStripMenuItem("Open Voice Without Borders", null, (_, _) => window.Restore()) { Font = new Font(menu.Font, FontStyle.Bold) };
+        var startStop = new ToolStripMenuItem("Start", null, async (_, _) => await vm.ToggleStreamingCommand.ExecuteAsync(null));
+        var mic = new ToolStripMenuItem("Microphone on", null, (_, _) => vm.MicEnabled = !vm.MicEnabled);
+        var sound = new ToolStripMenuItem("Sound on", null, (_, _) => vm.SoundEnabled = !vm.SoundEnabled);
         var overlay = new ToolStripMenuItem("Show overlay while streaming", null, (_, _) => vm.ShowOverlay = !vm.ShowOverlay);
-        menu.Items.AddRange([mic, sound, overlay, new ToolStripSeparator()]);
-        menu.Items.Add("Exit", null, (_, _) => System.Windows.Application.Current.Shutdown());
+        var unlock = new ToolStripMenuItem("Unlock overlay to move it", null, (_, _) => vm.OverlayUnlocked = !vm.OverlayUnlocked);
+        var exit = new ToolStripMenuItem("Exit", null, (_, _) => System.Windows.Application.Current.Shutdown());
+        menu.Items.AddRange([open, startStop, new ToolStripSeparator(), mic, sound, new ToolStripSeparator(), overlay, unlock, new ToolStripSeparator(), exit]);
 
         menu.Opening += (_, _) =>
         {
-            start.Enabled = vm.StartCommand.CanExecute(null);
-            stop.Enabled = vm.StopCommand.CanExecute(null);
+            startStop.Text = vm.IsRunning ? "Stop" : "Start";
+            startStop.ShortcutKeyDisplayString = vm.StartStopHotkey?.ToString();
             mic.Checked = vm.MicEnabled;
+            mic.ShortcutKeyDisplayString = vm.ToggleMicHotkey?.ToString();
             sound.Checked = vm.SoundEnabled;
+            sound.ShortcutKeyDisplayString = vm.ToggleSoundHotkey?.ToString();
             overlay.Checked = vm.ShowOverlay;
+            unlock.Checked = vm.OverlayUnlocked;
         };
 
         _icon = new NotifyIcon

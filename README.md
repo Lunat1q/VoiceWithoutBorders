@@ -48,9 +48,11 @@ The status line shows the address the name resolved to, plus packets sent, recei
 
 ## While streaming
 
+The window has three tabs: **Stream** (status, Start/Stop, live toggles), **Setup** (other computer, devices, latency) and **Hotkeys & overlay**.
+
 - **Tray:** minimizing hides the window to the notification area. Double-click the icon to bring it back; right-click for Start/Stop, the toggles below, and Exit.
-- **Overlay:** a small pill at the top of the screen shows each active stream (↑ sent, ↓ received) with bars that follow the audio level. It is click-through and never takes focus. Turn it off under *While streaming* or in the tray menu.
-- **Hotkeys** (work from any app): **Ctrl+Alt+M** turns the microphone stream on/off, **Ctrl+Alt+S** the sound stream. A stream that is off is neither sent nor played on this computer; the overlay shows it crossed out.
+- **Overlay:** a small pill shows each active stream (↑ sent, ↓ received) with bars that follow the audio level. It is click-through and never takes focus. Tick *Unlock to move it* to drag it anywhere (it stays visible while unlocked); untick to lock it there. *Reset position* puts it back at the top centre.
+- **Hotkeys** (work from any app): by default **Ctrl+Alt+M** turns the microphone stream on/off and **Ctrl+Alt+S** the sound stream; *Start/stop streaming* has no default. Change them in *Hotkeys & overlay*: click a box, press the new combination, Backspace removes it. The tab says when a combination is already taken by another app. A stream that is off is neither sent nor played on this computer; the overlay shows it crossed out.
 
 ## How it works
 
@@ -83,7 +85,7 @@ dotnet run --project VoiceWithoutBorders
 - Two computers only; no automatic discovery (enter the name or IP).
 - Uncompressed audio. Opus would cut bandwidth by about 20x.
 - Unplugging a device while streaming needs a Stop/Start.
-- Hotkeys are fixed (Ctrl+Alt+M / Ctrl+Alt+S); no auto-start with Windows yet.
+- No auto-start with Windows yet.
 
 ## Tech stack
 

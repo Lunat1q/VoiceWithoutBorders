@@ -1,4 +1,6 @@
+using System.Windows.Input;
 using FluentAssertions;
+using VoiceWithoutBorders.Features.Hotkeys;
 using Microsoft.Extensions.Logging.Abstractions;
 using VoiceWithoutBorders.Features.Settings;
 
@@ -27,6 +29,23 @@ public sealed class JsonSettingsStoreTests : IDisposable
         _store.Save(settings);
 
         _store.Load().Should().Be(settings);
+    }
+
+    [Fact]
+    public void SaveThenLoad_RoundTripsHotkeysAndOverlayPosition_WithReadableEnums()
+    {
+        var settings = AppSettingsTests.Valid with
+        {
+            ToggleSoundHotkey = null,
+            StartStopHotkey = new HotkeyBinding(ModifierKeys.Control | ModifierKeys.Shift, Key.F8),
+            OverlayLeft = 1650.5,
+            OverlayTop = 12,
+        };
+
+        _store.Save(settings);
+
+        _store.Load().Should().Be(settings);
+        File.ReadAllText(_path).Should().Contain("\"F8\"").And.Contain("Control, Shift");
     }
 
     [Fact]

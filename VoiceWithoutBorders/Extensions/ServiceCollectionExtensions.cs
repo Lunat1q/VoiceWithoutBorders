@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using VoiceWithoutBorders.Features.Hotkeys;
 using VoiceWithoutBorders.Features.Main;
 using VoiceWithoutBorders.Features.Overlay;
 using VoiceWithoutBorders.Features.Tray;
@@ -37,5 +38,6 @@ public static class ServiceCollectionExtensions
             .AddSingleton<MainWindow>()
             .AddSingleton<OverlayWindow>()
             .AddSingleton<TrayIcon>()
-            .AddSingleton<GlobalHotkeys>();
+            .AddSingleton<IGlobalHotkeys, GlobalHotkeys>()
+            .AddSingleton<HotkeyController>();
 }

@@ -14,10 +14,13 @@ VoiceWithoutBorders/
 ├── Models/
 │   └── StreamKind.cs             # Microphone | SystemAudio (byte on the wire)
 ├── Features/
-│   ├── Main/                     # MainWindow.xaml(.cs) (minimize → tray), MainViewModel (commands, device pickers,
-│   │                             #   live mic/sound toggles, autosave, status/stats), Hotkeys (fixed shortcuts)
-│   ├── Overlay/                  # OverlayWindow (topmost, click-through pill, ticks on CompositionTarget.Rendering),
-│   │                             #   OverlayViewModel + StreamIndicator (per-stream level bars, pure, unit-tested)
+│   ├── Hotkeys/                  # HotkeyBinding (record, key-press parsing, display), HotkeyBox (capture control),
+│   │                             #   HotkeyController (re-registers on change, reports conflicts in HotkeyStatus)
+│   ├── Main/                     # MainWindow.xaml(.cs) (tabs Stream / Setup / Hotkeys & overlay; minimize → tray),
+│   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
+│   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position, hotkey bindings)
+│   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;
+│   │                             #   ticks on CompositionTarget.Rendering), OverlayViewModel + StreamIndicator (pure)
 │   ├── Settings/                 # AppSettings (record + Validate), ISettingsStore, JsonSettingsStore (DPAPI key),
 │   │                             #   SharedKeyGenerator
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,
@@ -28,14 +31,14 @@ VoiceWithoutBorders/
     │                             #   IAudioEndpointFactory/WasapiEndpointFactory, IAudioCapture/WasapiAudioCapture,
     │                             #   IAudioPlayer/WasapiAudioPlayer, LatencyCappedBuffer (jitter buffer),
     │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking + resampling helpers)
-    ├── Interop/                  # NativeMethods (user32), GlobalHotkeys (RegisterHotKey on the main window handle)
+    ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window)
     └── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
                                   #   PacketCodec (framing, AES-GCM, key derivation, replay window)
 ```
 
 ## Tests (`VoiceWithoutBorders.Tests/`)
 
-Mirrors the app tree: `Features/{Main,Overlay,Settings,Streaming}`, `Infrastructure/{Audio,Network}`, `Extensions/`.
+Mirrors the app tree: `Features/{Hotkeys,Main,Overlay,Settings,Streaming}`, `Infrastructure/{Audio,Network}`, `Extensions/`.
 Windows, tray icon and hotkeys are thin Win32/WPF glue and are not unit-tested; their logic lives in view models.
 
 ## Data flow

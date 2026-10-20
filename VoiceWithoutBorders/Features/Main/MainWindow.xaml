@@ -4,14 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:main="clr-namespace:VoiceWithoutBorders.Features.Main"
+        xmlns:hotkeys="clr-namespace:VoiceWithoutBorders.Features.Hotkeys"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=main:MainViewModel}"
         Title="Voice Without Borders"
-        Width="600"
-        SizeToContent="Height"
+        Width="620"
+        Height="700"
+        MinHeight="480"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
         <Style TargetType="Label">
             <Setter Property="Margin" Value="0,4,8,4" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -19,164 +22,265 @@
         <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Margin" Value="0,4" />
         </Style>
-        <BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
-        <Style x:Key="Warning" TargetType="Border">
-            <Setter Property="Margin" Value="0,0,0,4" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="#FFFFA000" />
-            <Setter Property="Background" Value="#33FFA000" />
+        <Style TargetType="hotkeys:HotkeyBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Margin" Value="0,4" />
+            <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="Margin" Value="0,4" />
             <Setter Property="DisplayMemberPath" Value="Name" />
         </Style>
+        <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Setter Property="Margin" Value="0,4" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
         <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
             <Setter Property="Margin" Value="0,0,0,12" />
             <Setter Property="Padding" Value="8" />
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinWidth" Value="96" />
         </Style>
         <Style x:Key="Hint" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,0,0,4" />
             <Setter Property="Opacity" Value="0.7" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
-        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Margin" Value="8,0,0,0" />
-            <Setter Property="MinWidth" Value="96" />
+        <Style x:Key="Shortcut" TargetType="TextBlock">
+            <Setter Property="Opacity" Value="0.6" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="12,0,0,0" />
+        </Style>
+        <Style x:Key="Warning" TargetType="Border">
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#FFFFA000" />
+            <Setter Property="Background" Value="#33FFA000" />
+        </Style>
+        <Style x:Key="TabPage" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Padding" Value="4,12,8,4" />
         </Style>
     </Window.Resources>
 
-    <StackPanel Margin="16">
-        <Border Style="{StaticResource Warning}" Margin="0,0,0,12"
-                Visibility="{Binding NoOutputDevices, Converter={StaticResource VisibleWhenTrue}}">
-            <TextBlock TextWrapping="Wrap">
-                This computer has no playback devices, so it cannot play or relay anything it receives.
-                Install a virtual cable such as
-                <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
-                then press Refresh devices.
-            </TextBlock>
-        </Border>
+    <TabControl Margin="12">
+        <!-- Everyday use: status, start/stop, live toggles. -->
+        <TabItem Header="Stream">
+            <ScrollViewer Style="{StaticResource TabPage}">
+                <StackPanel>
+                    <GroupBox Header="Status">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="15" />
+                            <TextBlock Margin="0,4,0,0" Text="{Binding Stats}" Style="{StaticResource Hint}" />
+                            <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                                <!-- AccessText: the accent template does not turn "_t" into an access key by itself. -->
+                                <Button Command="{Binding StartCommand}" IsDefault="True" MinWidth="120"
+                                        Style="{DynamicResource AccentButtonStyle}">
+                                    <AccessText Text="S_tart" />
+                                </Button>
+                                <Button Margin="8,0,0,0" Content="Sto_p" Command="{Binding StopCommand}" MinWidth="120" />
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
 
-        <StackPanel IsEnabled="{Binding IsIdle}">
-            <GroupBox Header="Other computer">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="170" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                    <GroupBox Header="Live controls">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                    <Label Content="_Computer name or IP" Target="{Binding ElementName=PeerHostBox}" />
-                    <TextBox x:Name="PeerHostBox" Grid.Column="1" Text="{Binding PeerHost, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox Content="_Microphone on" IsChecked="{Binding MicEnabled}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource Shortcut}" Text="{Binding ToggleMicHotkey, TargetNullValue=''}" />
 
-                    <Label Grid.Row="1" Content="_UDP port" Target="{Binding ElementName=PortBox}" />
-                    <TextBox x:Name="PortBox" Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Port}" />
+                            <CheckBox Grid.Row="1" Content="_Sound on" IsChecked="{Binding SoundEnabled}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Shortcut}" Text="{Binding ToggleSoundHotkey, TargetNullValue=''}" />
 
-                    <Label Grid.Row="2" Content="Shared _key" Target="{Binding ElementName=SharedKeyBox}" />
-                    <DockPanel Grid.Row="2" Grid.Column="1">
-                        <Button DockPanel.Dock="Right" Content="_New" MinWidth="0" Margin="8,4,0,4" Padding="12,0"
-                                ToolTip="Generate a new random key" Command="{Binding NewSharedKeyCommand}" />
-                        <TextBox x:Name="SharedKeyBox" FontFamily="Consolas"
-                                 Text="{Binding SharedKey, UpdateSourceTrigger=PropertyChanged}" />
-                    </DockPanel>
+                            <CheckBox Grid.Row="2" Content="Show _overlay while streaming" IsChecked="{Binding ShowOverlay}" />
 
-                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}"
-                               Text="Use the same port and key (16+ characters) on both computers: type this key on the other one." />
-                </Grid>
-            </GroupBox>
+                            <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Margin="0,8,0,0" Style="{StaticResource Hint}"
+                                       Text="A stream that is off is neither sent nor played here. Minimize to hide the window in the tray." />
+                        </Grid>
+                    </GroupBox>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
 
-            <GroupBox Header="Send to the other computer">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="170" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+        <!-- One-time setup; locked while streaming. -->
+        <TabItem Header="Setup">
+            <ScrollViewer Style="{StaticResource TabPage}">
+                <StackPanel>
+                    <Border Style="{StaticResource Warning}" Visibility="{Binding IsRunning, Converter={StaticResource VisibleWhenTrue}}">
+                        <TextBlock TextWrapping="Wrap" Text="Stop streaming to change the setup." />
+                    </Border>
+                    <Border Style="{StaticResource Warning}" Visibility="{Binding NoOutputDevices, Converter={StaticResource VisibleWhenTrue}}">
+                        <TextBlock TextWrapping="Wrap">
+                            This computer has no playback devices, so it cannot play anything it receives. Install a virtual
+                            cable such as <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
+                            then press Refresh devices.
+                        </TextBlock>
+                    </Border>
 
-                    <Label Content="_My microphone" Target="{Binding ElementName=MicCaptureBox}" />
-                    <ComboBox x:Name="MicCaptureBox" Grid.Column="1" ItemsSource="{Binding InputDevices}" SelectedItem="{Binding MicCapture}" />
+                    <StackPanel IsEnabled="{Binding IsIdle}">
+                        <GroupBox Header="Other computer">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                    <Label Grid.Row="1" Content="_Sound playing on" Target="{Binding ElementName=SystemCaptureBox}" />
-                    <ComboBox x:Name="SystemCaptureBox" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemCapture}" />
-                </Grid>
-            </GroupBox>
+                                <Label Content="_Computer name or IP" Target="{Binding ElementName=PeerHostBox}" />
+                                <TextBox x:Name="PeerHostBox" Grid.Column="1" Text="{Binding PeerHost, UpdateSourceTrigger=PropertyChanged}" />
 
-            <GroupBox Header="Play what the other computer sends">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="170" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                                <Label Grid.Row="1" Content="_UDP port" Target="{Binding ElementName=PortBox}" />
+                                <TextBox x:Name="PortBox" Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Port}" />
 
-                    <Label Content="Its microphone _becomes" Target="{Binding ElementName=MicPlaybackBox}" />
-                    <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding VirtualMicrophones}" SelectedItem="{Binding MicPlayback}" />
+                                <Label Grid.Row="2" Content="Shared _key" Target="{Binding ElementName=SharedKeyBox}" />
+                                <DockPanel Grid.Row="2" Grid.Column="1">
+                                    <Button DockPanel.Dock="Right" Content="_New" MinWidth="0" Margin="8,4,0,4" Padding="12,0"
+                                            ToolTip="Generate a new random key" Command="{Binding NewSharedKeyCommand}" />
+                                    <TextBox x:Name="SharedKeyBox" FontFamily="Consolas" Text="{Binding SharedKey, UpdateSourceTrigger=PropertyChanged}" />
+                                </DockPanel>
 
-                    <StackPanel Grid.Row="1" Grid.Column="1">
-                        <TextBlock Style="{StaticResource Hint}"
-                                   Text="Apps here (Teams, Discord…) pick this microphone to hear the other computer's mic." />
-                        <Border Style="{StaticResource Warning}"
-                                Visibility="{Binding NoVirtualMicrophone, Converter={StaticResource VisibleWhenTrue}}">
-                            <TextBlock TextWrapping="Wrap">
-                                No virtual microphone on this computer. Windows only lets a driver create microphones:
-                                install the free
-                                <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
-                                then press Refresh devices.
-                            </TextBlock>
-                        </Border>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}"
+                                           Text="Use the same port and key (16+ characters) on both computers: type this key on the other one." />
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Header="Send to the other computer">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Label Content="My _microphone" Target="{Binding ElementName=MicCaptureBox}" />
+                                <ComboBox x:Name="MicCaptureBox" Grid.Column="1" ItemsSource="{Binding InputDevices}" SelectedItem="{Binding MicCapture}" />
+
+                                <Label Grid.Row="1" Content="_Sound playing on" Target="{Binding ElementName=SystemCaptureBox}" />
+                                <ComboBox x:Name="SystemCaptureBox" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemCapture}" />
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Header="Play what the other computer sends">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Label Content="Its microphone _becomes" Target="{Binding ElementName=MicPlaybackBox}" />
+                                <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding VirtualMicrophones}" SelectedItem="{Binding MicPlayback}" />
+
+                                <StackPanel Grid.Row="1" Grid.Column="1">
+                                    <TextBlock Style="{StaticResource Hint}"
+                                               Text="Apps here (Teams, Discord…) pick this microphone to hear the other computer's mic." />
+                                    <Border Style="{StaticResource Warning}" Margin="0,0,0,4"
+                                            Visibility="{Binding NoVirtualMicrophone, Converter={StaticResource VisibleWhenTrue}}">
+                                        <TextBlock TextWrapping="Wrap">
+                                            No virtual microphone on this computer. Windows only lets a driver create microphones:
+                                            install the free <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
+                                            then press Refresh devices.
+                                        </TextBlock>
+                                    </Border>
+                                </StackPanel>
+
+                                <Label Grid.Row="2" Content="Play its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
+                                <ComboBox x:Name="SystemPlaybackBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemPlayback}" />
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Header="Advanced">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Label Content="Max _latency (ms)" Target="{Binding ElementName=LatencyBox}" />
+                                <TextBox x:Name="LatencyBox" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding MaxLatencyMs}" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}"
+                                           Text="Lower feels snappier; raise it if you hear crackles on Wi-Fi." />
+                            </Grid>
+                        </GroupBox>
+
+                        <Button HorizontalAlignment="Left" Content="_Refresh devices" Command="{Binding RefreshDevicesCommand}" />
                     </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
 
-                    <Label Grid.Row="2" Content="Play its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
-                    <ComboBox x:Name="SystemPlaybackBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemPlayback}" />
+        <TabItem Header="Hotkeys &amp; overlay">
+            <ScrollViewer Style="{StaticResource TabPage}">
+                <StackPanel>
+                    <GroupBox Header="Hotkeys">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="170" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                    <Label Grid.Row="3" Content="Max _latency (ms)" Target="{Binding ElementName=LatencyBox}" />
-                    <TextBox x:Name="LatencyBox" Grid.Row="3" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding MaxLatencyMs}" />
-                </Grid>
-            </GroupBox>
-        </StackPanel>
+                            <Label Content="M_icrophone on/off" Target="{Binding ElementName=MicHotkeyBox}" />
+                            <hotkeys:HotkeyBox x:Name="MicHotkeyBox" Grid.Column="1" Hotkey="{Binding ToggleMicHotkey}" />
 
-        <!-- Outside the idle-only panel: these work live while streaming. -->
-        <GroupBox Header="While streaming">
-            <StackPanel>
-                <CheckBox Margin="0,4" IsChecked="{Binding MicEnabled}">
-                    <StackPanel Orientation="Horizontal">
-                        <AccessText Text="M_icrophone on" />
-                        <TextBlock Margin="8,0,0,0" Opacity="0.6" Text="{x:Static main:Hotkeys.ToggleMicText}" />
-                    </StackPanel>
-                </CheckBox>
-                <CheckBox Margin="0,4" IsChecked="{Binding SoundEnabled}">
-                    <StackPanel Orientation="Horizontal">
-                        <AccessText Text="Soun_d on" />
-                        <TextBlock Margin="8,0,0,0" Opacity="0.6" Text="{x:Static main:Hotkeys.ToggleSoundText}" />
-                    </StackPanel>
-                </CheckBox>
-                <CheckBox Margin="0,4" Content="Show o_verlay at the top of the screen" IsChecked="{Binding ShowOverlay}" />
-                <TextBlock Style="{StaticResource Hint}"
-                           Text="The shortcuts work from any app. Minimizing hides the window to the tray; double-click the tray icon to bring it back." />
-            </StackPanel>
-        </GroupBox>
+                            <Label Grid.Row="1" Content="Soun_d on/off" Target="{Binding ElementName=SoundHotkeyBox}" />
+                            <hotkeys:HotkeyBox x:Name="SoundHotkeyBox" Grid.Row="1" Grid.Column="1" Hotkey="{Binding ToggleSoundHotkey}" />
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="_Refresh devices" Command="{Binding RefreshDevicesCommand}" />
-            <Button Content="S_tart" Command="{Binding StartCommand}" IsDefault="True" />
-            <Button Content="Sto_p" Command="{Binding StopCommand}" />
-        </StackPanel>
+                            <Label Grid.Row="2" Content="St_art/stop streaming" Target="{Binding ElementName=StartStopHotkeyBox}" />
+                            <hotkeys:HotkeyBox x:Name="StartStopHotkeyBox" Grid.Row="2" Grid.Column="1" Hotkey="{Binding StartStopHotkey}" />
 
-        <TextBlock Margin="0,12,0,0" Text="{Binding Status}" TextWrapping="Wrap" />
-        <TextBlock Margin="0,4,0,0" Text="{Binding Stats}" Style="{StaticResource Hint}" />
-    </StackPanel>
+                            <StackPanel Grid.Row="3" Grid.Column="1">
+                                <TextBlock Style="{StaticResource Hint}"
+                                           Text="Click a box and press the new combination (with Ctrl, Alt or Win, or a function key). Backspace removes it." />
+                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding HotkeyStatus}" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+
+                    <GroupBox Header="Overlay">
+                        <StackPanel>
+                            <CheckBox Content="Show overlay _while streaming" IsChecked="{Binding ShowOverlay}" />
+                            <CheckBox Content="_Unlock to move it" IsChecked="{Binding OverlayUnlocked}" />
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="While unlocked the overlay stays visible so you can drag it anywhere. Lock it again to make it click-through; the spot is remembered." />
+                            <Button Margin="0,8,0,0" HorizontalAlignment="Left" Content="R_eset position" Command="{Binding ResetOverlayPositionCommand}" />
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
 </Window>

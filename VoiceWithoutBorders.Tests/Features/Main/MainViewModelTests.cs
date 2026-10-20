@@ -1,6 +1,7 @@
 using System.Net;
 using FluentAssertions;
 using Moq;
+using VoiceWithoutBorders.Features.Hotkeys;
 using VoiceWithoutBorders.Features.Main;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
@@ -261,6 +262,60 @@ public class MainViewModelTests
         vm.ShowOverlay = true;
         vm.StopCommand.Execute(null);
         vm.OverlayVisible.Should().BeFalse();
+    }
+
+    [Fact]
+    public void UnlockingOverlay_ShowsPreviewWhileStopped_AndPositionIsSaved()
+    {
+        var vm = Create();
+
+        vm.OverlayUnlocked = true;
+
+        vm.OverlayVisible.Should().BeTrue("so it can be dragged even when not streaming");
+        vm.Overlay.IsUnlocked.Should().BeTrue();
+        vm.Overlay.Indicators.Should().HaveCount(2, "preview of the configured streams");
+
+        vm.MoveOverlay(120, 40);
+        vm.OverlayUnlocked = false;
+
+        vm.OverlayVisible.Should().BeFalse();
+        _store.Verify(s => s.Save(It.Is<AppSettings>(saved => saved.OverlayLeft == 120 && saved.OverlayTop == 40)));
+    }
+
+    [Fact]
+    public void ResetOverlayPosition_ClearsSavedSpot()
+    {
+        var vm = Create();
+        vm.MoveOverlay(120, 40);
+
+        vm.ResetOverlayPositionCommand.Execute(null);
+
+        vm.OverlayLeft.Should().BeNull();
+        vm.OverlayTop.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ToggleStreaming_StartsThenStops()
+    {
+        var vm = Create();
+
+        await vm.ToggleStreamingCommand.ExecuteAsync(null);
+        vm.IsRunning.Should().BeTrue();
+
+        await vm.ToggleStreamingCommand.ExecuteAsync(null);
+        vm.IsRunning.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Hotkeys_LoadDefaultsAndPersistChanges()
+    {
+        var vm = Create();
+        vm.ToggleMicHotkey.Should().Be(HotkeyBinding.DefaultToggleMic);
+        vm.StartStopHotkey.Should().BeNull();
+
+        vm.StartStopHotkey = new HotkeyBinding(System.Windows.Input.ModifierKeys.Control, System.Windows.Input.Key.F8);
+
+        _store.Verify(s => s.Save(It.Is<AppSettings>(saved => saved.StartStopHotkey!.ToString() == "Ctrl+F8")));
     }
 
     [Fact]

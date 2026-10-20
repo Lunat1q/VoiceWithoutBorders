@@ -17,32 +17,59 @@
         Focusable="False"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight">
-    <Border CornerRadius="14" Padding="10,5" Background="#D91B1E26" BorderBrush="#33FFFFFF" BorderThickness="1">
-        <ItemsControl ItemsSource="{Binding Indicators}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type overlay:StreamIndicator}">
-                    <StackPanel x:Name="Root" Orientation="Horizontal" Margin="5,0" Height="20">
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14" Foreground="White"
-                                   VerticalAlignment="Center" Text="{Binding Glyph}" />
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="8" Foreground="{Binding Accent}"
-                                   VerticalAlignment="Center" Margin="2,0,5,0" Text="{Binding DirectionGlyph}" />
-                        <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar0}" />
-                        <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar1}" />
-                        <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar2}" />
-                        <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar3}" />
-                    </StackPanel>
-                    <DataTemplate.Triggers>
-                        <DataTrigger Binding="{Binding IsMuted}" Value="True">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.45" />
-                        </DataTrigger>
-                    </DataTemplate.Triggers>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+    <Border x:Name="Pill" CornerRadius="14" Padding="10,5" Background="#D91B1E26" BorderBrush="#33FFFFFF" BorderThickness="1">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsUnlocked}" Value="True">
+                        <Setter Property="Cursor" Value="SizeAll" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        <StackPanel>
+            <ItemsControl ItemsSource="{Binding Indicators}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type overlay:StreamIndicator}">
+                        <!-- Fixed cell heights keep the icon, the arrow and the bars on one centre line. -->
+                        <StackPanel x:Name="Root" Orientation="Horizontal" Margin="5,0" Height="20">
+                            <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14" Foreground="White"
+                                       Height="14" LineHeight="14" LineStackingStrategy="BlockLineHeight"
+                                       VerticalAlignment="Center" Text="{Binding Glyph}" />
+                            <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="8" Foreground="{Binding Accent}"
+                                       Height="8" LineHeight="8" LineStackingStrategy="BlockLineHeight"
+                                       VerticalAlignment="Center" Margin="2,0,5,0" Text="{Binding DirectionGlyph}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar0}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar1}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar2}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar3}" />
+                        </StackPanel>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.45" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock x:Name="DragHint" Margin="5,3,5,1" FontSize="10" Foreground="#CCFFFFFF" HorizontalAlignment="Center"
+                       Text="Drag to move · lock it in Hotkeys &amp; overlay">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsUnlocked}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </StackPanel>
     </Border>
 </Window>

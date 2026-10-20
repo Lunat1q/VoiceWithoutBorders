@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Models;
@@ -6,9 +7,12 @@ using VoiceWithoutBorders.Models;
 namespace VoiceWithoutBorders.Features.Overlay;
 
 /// <summary>State of the always-on-top activity pill: one indicator per stream that is actually in use.</summary>
-public sealed class OverlayViewModel
+public sealed partial class OverlayViewModel : ObservableObject
 {
     private double _time;
+
+    /// <summary>Shows the drag hint and outline while the user positions the overlay.</summary>
+    [ObservableProperty] private bool _isUnlocked;
 
     public ObservableCollection<StreamIndicator> Indicators { get; } = [];
 

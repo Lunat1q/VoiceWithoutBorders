@@ -1,3 +1,4 @@
+using VoiceWithoutBorders.Features.Hotkeys;
 using VoiceWithoutBorders.Infrastructure.Network;
 
 namespace VoiceWithoutBorders.Features.Settings;
@@ -36,6 +37,18 @@ public sealed record AppSettings
 
     /// <summary>Small always-on-top activity indicator while streaming.</summary>
     public bool ShowOverlay { get; init; } = true;
+
+    /// <summary>Overlay position in device-independent pixels; null means top centre of the primary screen.</summary>
+    public double? OverlayLeft { get; init; }
+
+    public double? OverlayTop { get; init; }
+
+    /// <summary>Global shortcuts; null means none.</summary>
+    public HotkeyBinding? ToggleMicHotkey { get; init; } = HotkeyBinding.DefaultToggleMic;
+
+    public HotkeyBinding? ToggleSoundHotkey { get; init; } = HotkeyBinding.DefaultToggleSound;
+
+    public HotkeyBinding? StartStopHotkey { get; init; }
 
     public IReadOnlyList<string> Validate()
     {

@@ -4,20 +4,17 @@ using System.Windows.Interop;
 
 namespace VoiceWithoutBorders.Infrastructure.Interop;
 
-/// <summary>System-wide hotkeys that work while another app has focus or the window is in the tray.</summary>
-public sealed class GlobalHotkeys : IDisposable
+public sealed class GlobalHotkeys : IGlobalHotkeys
 {
     private readonly Dictionary<int, Action> _actions = [];
     private HwndSource? _source;
 
-    /// <summary>Hotkey messages are delivered to this window, so it must live as long as the hotkeys.</summary>
     public void Attach(Window window)
     {
         _source = HwndSource.FromHwnd(new WindowInteropHelper(window).EnsureHandle());
         _source.AddHook(WndProc);
     }
 
-    /// <returns>False when another app already owns the combination.</returns>
     public bool Register(ModifierKeys modifiers, Key key, Action action)
     {
         if (_source is null)
@@ -27,6 +24,17 @@ public sealed class GlobalHotkeys : IDisposable
             return false;
         _actions[id] = action;
         return true;
+    }
+
+    public void UnregisterAll()
+    {
+        // On shutdown the window may already be destroyed, which releases its hotkeys anyway.
+        if (_source is { IsDisposed: false } source)
+        {
+            foreach (var id in _actions.Keys)
+                NativeMethods.UnregisterHotKey(source.Handle, id);
+        }
+        _actions.Clear();
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -41,14 +49,9 @@ public sealed class GlobalHotkeys : IDisposable
 
     public void Dispose()
     {
-        // On shutdown the window may already be destroyed, which releases its hotkeys anyway.
+        UnregisterAll();
         if (_source is { IsDisposed: false } source)
-        {
-            foreach (var id in _actions.Keys)
-                NativeMethods.UnregisterHotKey(source.Handle, id);
             source.RemoveHook(WndProc);
-        }
-        _actions.Clear();
         _source = null;
     }
 }
