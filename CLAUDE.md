@@ -86,6 +86,6 @@ Windows desktop app that shares microphone and system sound between two PCs on a
 ## Domain Concepts
 
 - **StreamKind**: `Microphone` or `SystemAudio`. Each machine sends at most one of each and plays each on its own device.
-- **Peer**: the other computer (name or IPv4 address). Exactly one peer per session.
+- **Peer**: the other computer (name, IPv4 or IPv6 address). Exactly one peer per session. The socket is dual-stack; names often resolve to IPv6 only (LLMNR/mDNS), so never filter to IPv4.
 - **Session**: random id per codec instance; sequence numbers per stream kind reject duplicates and late packets.
 - **Max latency**: jitter buffer cap; on overflow the buffer drops to half the cap.

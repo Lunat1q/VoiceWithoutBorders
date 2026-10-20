@@ -40,7 +40,7 @@ The same applies to a computer with no sound card at all (a server, a VM): it ha
 2. Run `VoiceWithoutBorders.exe` on both PCs.
 3. On each PC enter the **other** computer's name or IP address and the same **UDP port** (default `15300`). The first PC generates a random **shared key**: type that same key on the other PC (or press **New** for a fresh one).
 4. Choose the devices, then press **Start** on both.
-5. Allow the app through Windows Firewall when asked (private networks only).
+5. Allow the app through Windows Firewall when asked. The prompt only allows **private** networks by default: if Windows marks your network as *Public* (Settings → Network & internet → your connection → Network profile type), switch it to *Private*, or incoming audio is blocked.
 
 The status line shows the address the name resolved to, plus packets sent, received and rejected. Lots of rejected packets and nothing received usually means the shared keys differ. If the address is wrong (a computer name resolving to a VPN or virtual adapter), enter the IP address instead of the name.
 
