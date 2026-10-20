@@ -12,8 +12,8 @@ Headset is plugged into **Desk PC**. You also want to talk and listen on **Lapto
 |---|---|---|
 | My microphone | Headset mic | Off |
 | Sound playing on | Off | Speakers (the device apps play to) |
-| Its microphone on | Off | **CABLE Input** (virtual cable) |
-| Its sound on | Headset | Off |
+| Play its microphone into | Off | **CABLE Input** (virtual cable) |
+| Play its sound on | Headset | Off |
 
 On the laptop, apps (Teams, Discord, Zoom…) then use **CABLE Output** as their microphone. In Windows sound settings, make **CABLE Output** both the *default* and the *default communications* recording device, so apps that just use "default" pick it too.
 
@@ -23,7 +23,9 @@ The laptop's own microphone is not mixed in: Windows never combines microphones,
 
 Windows only lets drivers create microphones. To make the remote mic look like a local one, install a free virtual audio cable such as [VB-CABLE](https://vb-audio.com/Cable/). Play the incoming mic into **CABLE Input**; apps record from **CABLE Output**.
 
-If you pick real speakers for *Its microphone on* instead, the other computer's voice plays out loud and this computer's own microphone can pick it up again, mixed with the room. The app warns when the device you picked does not look like a virtual cable.
+That is why *Play its microphone into* lists playback devices, not microphones: the app plays into the cable's playback side, and the cable hands it to apps as a recording device.
+
+If you pick real speakers for *Play its microphone into* instead, the other computer's voice plays out loud and this computer's own microphone can pick it up again, mixed with the room. The app warns when the device you picked does not look like a virtual cable.
 
 VB-CABLE is not bundled (its license does not allow redistribution); install it from the link above or in the app.
 

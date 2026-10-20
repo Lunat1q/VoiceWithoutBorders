@@ -123,14 +123,15 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Label Content="Its microphone o_n" Target="{Binding ElementName=MicPlaybackBox}" />
+                    <Label Content="Play its microphone i_nto" Target="{Binding ElementName=MicPlaybackBox}" />
                     <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding MicPlayback}" />
 
                     <StackPanel Grid.Row="1" Grid.Column="1">
                         <TextBlock Style="{StaticResource Hint}">
-                            Pick a virtual cable input (for example "CABLE Input" from
-                            <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>)
-                            so apps here can record it as a microphone.
+                            Playback devices on purpose: audio can only be played into a device. Pick the playback side
+                            of a virtual cable ("CABLE Input" from
+                            <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>);
+                            apps here then choose its recording side ("CABLE Output") as their microphone.
                         </TextBlock>
                         <Border Style="{StaticResource Warning}"
                                 Visibility="{Binding MicPlaybackIsAudible, Converter={StaticResource VisibleWhenTrue}}">
@@ -144,7 +145,7 @@
                         </Border>
                     </StackPanel>
 
-                    <Label Grid.Row="2" Content="Its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
+                    <Label Grid.Row="2" Content="Play its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
                     <ComboBox x:Name="SystemPlaybackBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemPlayback}" />
 
                     <Label Grid.Row="3" Content="Max _latency (ms)" Target="{Binding ElementName=LatencyBox}" />
