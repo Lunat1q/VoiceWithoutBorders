@@ -1,4 +1,4 @@
-# Voice Without Borders
+# <img src="VoiceWithoutBorders/Assets/app.png" width="48" align="top" alt=""> Voice Without Borders
 
 Share a microphone and system sound between two Windows PCs on the same network. Think *Mouse Without Borders*, but for audio: plug one headset into one computer and use it for both.
 
