@@ -48,7 +48,7 @@ The status line shows the address the name resolved to, plus packets sent, recei
 
 ## While streaming
 
-The window has three tabs: **Stream** (status, Start/Stop, live toggles), **Setup** (other computer, devices, latency) and **Hotkeys & overlay**.
+The window has four tabs: **Stream** (status, Start/Stop, live toggles), **Connection** (other computer, shared key, latency), **Devices** (what to send, where to play) and **Hotkeys & overlay**.
 
 - **Tray:** minimizing hides the window to the notification area. Double-click the icon to bring it back; right-click for Start/Stop, the toggles below, and Exit.
 - **Overlay:** a small pill shows each active stream (↑ sent, ↓ received) with bars that follow the audio level. It is click-through and never takes focus. Tick *Unlock to move it* to drag it anywhere (it stays visible while unlocked); untick to lock it there. *Reset position* puts it back at the top centre.

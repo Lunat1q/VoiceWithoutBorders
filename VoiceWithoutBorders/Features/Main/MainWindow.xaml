@@ -9,8 +9,7 @@
         d:DataContext="{d:DesignInstance Type=main:MainViewModel}"
         Title="Voice Without Borders"
         Width="620"
-        Height="700"
-        MinHeight="480"
+        Height="640"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
@@ -114,19 +113,12 @@
             </ScrollViewer>
         </TabItem>
 
-        <!-- One-time setup; locked while streaming. -->
-        <TabItem Header="Setup">
+        <!-- One-time setup, split so no tab needs scrolling; locked while streaming. -->
+        <TabItem Header="Connection">
             <ScrollViewer Style="{StaticResource TabPage}">
                 <StackPanel>
                     <Border Style="{StaticResource Warning}" Visibility="{Binding IsRunning, Converter={StaticResource VisibleWhenTrue}}">
-                        <TextBlock TextWrapping="Wrap" Text="Stop streaming to change the setup." />
-                    </Border>
-                    <Border Style="{StaticResource Warning}" Visibility="{Binding NoOutputDevices, Converter={StaticResource VisibleWhenTrue}}">
-                        <TextBlock TextWrapping="Wrap">
-                            This computer has no playback devices, so it cannot play anything it receives. Install a virtual
-                            cable such as <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
-                            then press Refresh devices.
-                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap" Text="Stop streaming to change the connection." />
                     </Border>
 
                     <StackPanel IsEnabled="{Binding IsIdle}">
@@ -160,6 +152,44 @@
                                            Text="Use the same port and key (16+ characters) on both computers: type this key on the other one." />
                             </Grid>
                         </GroupBox>
+
+                        <GroupBox Header="Advanced">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Label Content="Max _latency (ms)" Target="{Binding ElementName=LatencyBox}" />
+                                <TextBox x:Name="LatencyBox" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding MaxLatencyMs}" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}"
+                                           Text="Lower feels snappier; raise it if you hear crackles on Wi-Fi." />
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Devices">
+            <ScrollViewer Style="{StaticResource TabPage}">
+                <StackPanel>
+                    <Border Style="{StaticResource Warning}" Visibility="{Binding IsRunning, Converter={StaticResource VisibleWhenTrue}}">
+                        <TextBlock TextWrapping="Wrap" Text="Stop streaming to change devices." />
+                    </Border>
+                    <Border Style="{StaticResource Warning}" Visibility="{Binding NoOutputDevices, Converter={StaticResource VisibleWhenTrue}}">
+                        <TextBlock TextWrapping="Wrap">
+                            This computer has no playback devices, so it cannot play anything it receives. Install a virtual
+                            cable such as <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
+                            then press Refresh devices.
+                        </TextBlock>
+                    </Border>
+
+                    <StackPanel IsEnabled="{Binding IsIdle}">
 
                         <GroupBox Header="Send to the other computer">
                             <Grid>
@@ -210,24 +240,6 @@
 
                                 <Label Grid.Row="2" Content="Play its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
                                 <ComboBox x:Name="SystemPlaybackBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemPlayback}" />
-                            </Grid>
-                        </GroupBox>
-
-                        <GroupBox Header="Advanced">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="170" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <Label Content="Max _latency (ms)" Target="{Binding ElementName=LatencyBox}" />
-                                <TextBox x:Name="LatencyBox" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding MaxLatencyMs}" />
-                                <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}"
-                                           Text="Lower feels snappier; raise it if you hear crackles on Wi-Fi." />
                             </Grid>
                         </GroupBox>
 

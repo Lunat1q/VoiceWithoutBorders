@@ -16,7 +16,7 @@ VoiceWithoutBorders/
 ├── Features/
 │   ├── Hotkeys/                  # HotkeyBinding (record, key-press parsing, display), HotkeyBox (capture control),
 │   │                             #   HotkeyController (re-registers on change, reports conflicts in HotkeyStatus)
-│   ├── Main/                     # MainWindow.xaml(.cs) (tabs Stream / Setup / Hotkeys & overlay; minimize → tray),
+│   ├── Main/                     # MainWindow.xaml(.cs) (tabs Stream / Connection / Devices / Hotkeys & overlay; minimize → tray),
 │   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
 │   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position, hotkey bindings)
 │   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;

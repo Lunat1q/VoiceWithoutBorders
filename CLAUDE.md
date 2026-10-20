@@ -60,6 +60,7 @@ Windows desktop app that shares microphone and system sound between two PCs on a
 - Views bind to view models; no business logic in code-behind. Code-behind is allowed only for view-only glue (e.g. `PasswordBox`, timers).
 - View models never reference WPF types, so they are unit-testable without a dispatcher.
 - Every input gets a `Label` with `Target` (keyboard access key + screen reader name).
+- No tab may need scrolling at the default window size (640 high, fits 768p screens). A tab that grows gets split, not a taller window.
 - Shared styles live in `Window.Resources` / `App.xaml`; one-off tweaks inline.
 
 ### Audio and threading

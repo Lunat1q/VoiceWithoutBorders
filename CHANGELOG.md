@@ -5,7 +5,7 @@
 - Minimize to tray, with a tray menu for Start/Stop, toggles and Exit.
 - Always-on-top, click-through overlay with live level bars per stream while streaming.
 - Global hotkeys (default Ctrl+Alt+M / Ctrl+Alt+S) to turn the mic / sound stream on and off, plus an optional start/stop hotkey; all rebindable, with a clear message when a combination is taken.
-- Window split into Stream, Setup and Hotkeys & overlay tabs.
+- Window split into Stream, Connection, Devices and Hotkeys & overlay tabs; none needs scrolling.
 - Overlay can be unlocked, dragged anywhere and locked again; position is remembered.
 - Fix: tray menu shortcuts were glued to the item text.
 
