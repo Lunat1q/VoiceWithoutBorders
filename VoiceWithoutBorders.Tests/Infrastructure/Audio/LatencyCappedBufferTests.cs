@@ -25,6 +25,17 @@ public class LatencyCappedBufferTests
         WriteMilliseconds(buffer, 300);
 
         buffer.BufferedDuration.Should().BeLessThanOrEqualTo(TimeSpan.FromMilliseconds(105));
+        buffer.Skips.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void Write_UnderCap_CountsNoSkips()
+    {
+        var buffer = new LatencyCappedBuffer(WireFormat.Format, TimeSpan.FromMilliseconds(100));
+
+        WriteMilliseconds(buffer, 90);
+
+        buffer.Skips.Should().Be(0);
     }
 
     [Fact]

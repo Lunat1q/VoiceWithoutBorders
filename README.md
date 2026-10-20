@@ -48,6 +48,7 @@ The *Stream* tab shows the address the name resolved to and the link health:
 - **● Waiting** (amber): nothing heard yet. Start the app on the other computer with the same port and key, and check the firewall.
 - **● Different key** (red): packets arrive but are rejected; the shared keys (or app versions) differ.
 - **Sending / Receiving** light up while audio actually moved in the last second.
+- **Latency:** the network round trip (measured with the heartbeats) and, for each stream played here, the estimated delay from the other computer's capture to this computer's speakers: capture buffer + half the round trip + jitter buffer + sound card. Green under 150 ms, amber up to 300 ms, red above. A warning appears when audio has to be skipped to catch up, which usually means busy Wi-Fi: raise *Max latency* or use a cable.
 
 If the address is wrong (a computer name resolving to a VPN or virtual adapter), enter the IP address instead of the name.
 

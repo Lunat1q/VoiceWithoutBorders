@@ -21,6 +21,8 @@ public sealed class WasapiAudioPlayer : IAudioPlayer
         _player.Play();
     }
 
+    public PlaybackStats Stats => new(_buffer.BufferedDuration, TimeSpan.FromMilliseconds(_player.LatencyMilliseconds), _buffer.Skips);
+
     public void Write(ArraySegment<byte> pcm) => _buffer.Write(pcm);
 
     public void Dispose()

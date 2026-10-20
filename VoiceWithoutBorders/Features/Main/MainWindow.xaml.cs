@@ -1,10 +1,9 @@
-using System.Diagnostics;
 using System.Windows;
-using System.Windows.Navigation;
 using System.Windows.Threading;
 
 namespace VoiceWithoutBorders.Features.Main;
 
+/// <summary>Shell for the four tabs (Features/Main/Tabs); minimizing hides it to the tray.</summary>
 public partial class MainWindow : Window
 {
     public MainWindow(MainViewModel viewModel)
@@ -28,11 +27,5 @@ public partial class MainWindow : Window
         Show();
         WindowState = WindowState.Normal;
         Activate();
-    }
-
-    private void OpenLink(object sender, RequestNavigateEventArgs e)
-    {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-        e.Handled = true;
     }
 }

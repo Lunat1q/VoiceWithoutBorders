@@ -107,6 +107,19 @@ public class StreamingServiceTests
     }
 
     [Fact]
+    public async Task GetLatency_EstimatesEveryPlayedStreamFromRoundTripAndPlayerStats()
+    {
+        _transport.Setup(t => t.Stats).Returns(new TransportStats(0, 0, 0, TimeSpan.Zero, RoundTrip: TimeSpan.FromMilliseconds(10)));
+        _player.Setup(p => p.Stats).Returns(new PlaybackStats(TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(30), Skips: 1));
+        await _sut.StartAsync(Settings);
+
+        var latency = _sut.GetLatency();
+
+        latency.Should().ContainSingle().Which.Should().Be(
+            new StreamLatency(StreamKind.SystemAudio, TimeSpan.FromMilliseconds(20 + 5 + 50 + 30), TimeSpan.FromMilliseconds(50), 1));
+    }
+
+    [Fact]
     public async Task Stop_ReleasesEverythingAndStopsPlayback()
     {
         await _sut.StartAsync(Settings);

@@ -1,0 +1,131 @@
+<UserControl x:Class="VoiceWithoutBorders.Features.Main.Tabs.StreamTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:main="clr-namespace:VoiceWithoutBorders.Features.Main"
+             xmlns:hotkeys="clr-namespace:VoiceWithoutBorders.Features.Hotkeys"
+             xmlns:streaming="clr-namespace:VoiceWithoutBorders.Features.Streaming"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=main:MainViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/VoiceWithoutBorders;component/Features/Main/MainStyles.xaml" />
+    </UserControl.Resources>
+
+    <ScrollViewer Style="{StaticResource TabPage}">
+        <StackPanel>
+            <GroupBox Header="Status">
+                <StackPanel>
+                    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="15" />
+
+                    <!-- Link health while streaming: is the peer answering, is audio moving. -->
+                    <StackPanel Margin="0,8,0,0" Visibility="{Binding IsRunning, Converter={StaticResource VisibleWhenTrue}}">
+                        <DockPanel>
+                            <Ellipse DockPanel.Dock="Left" Margin="0,5,8,0" VerticalAlignment="Top">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse" BasedOn="{StaticResource Dot}">
+                                        <Setter Property="Fill" Value="{StaticResource WaitingBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Connection}" Value="{x:Static streaming:PeerConnection.Connected}">
+                                                <Setter Property="Fill" Value="{StaticResource OkBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Connection}" Value="{x:Static streaming:PeerConnection.KeyMismatch}">
+                                                <Setter Property="Fill" Value="{StaticResource ErrorBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding ConnectionText}" TextWrapping="Wrap" />
+                        </DockPanel>
+                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                            <Ellipse Margin="0,0,8,0">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse" BasedOn="{StaticResource FlowDot}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSending}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource OkBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="Sending" Margin="0,0,24,0" />
+                            <Ellipse Margin="0,0,8,0">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse" BasedOn="{StaticResource FlowDot}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsReceiving}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource OkBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="Receiving" />
+                        </StackPanel>
+                        <DockPanel Margin="0,6,0,0" ToolTip="Estimate: capture on the other computer + half the network round trip + jitter buffer + this sound card.">
+                            <Ellipse DockPanel.Dock="Left" Margin="0,5,8,0" VerticalAlignment="Top">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse" BasedOn="{StaticResource FlowDot}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding LatencyHealth}" Value="{x:Static streaming:LatencyHealth.Good}">
+                                                <Setter Property="Fill" Value="{StaticResource OkBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding LatencyHealth}" Value="{x:Static streaming:LatencyHealth.Fair}">
+                                                <Setter Property="Fill" Value="{StaticResource WaitingBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding LatencyHealth}" Value="{x:Static streaming:LatencyHealth.Poor}">
+                                                <Setter Property="Fill" Value="{StaticResource ErrorBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding LatencyText}" TextWrapping="Wrap" />
+                        </DockPanel>
+                        <Border Style="{StaticResource Warning}" Margin="0,8,0,0"
+                                Visibility="{Binding AudioSkipping, Converter={StaticResource VisibleWhenTrue}}">
+                            <TextBlock TextWrapping="Wrap"
+                                       Text="Audio is being skipped to catch up with an uneven network. Raise Max latency on the Connection tab, or use a cable instead of Wi-Fi." />
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                        <!-- AccessText: the accent template does not turn "_t" into an access key by itself. -->
+                        <Button Command="{Binding StartCommand}" IsDefault="True" MinWidth="120"
+                                Style="{DynamicResource AccentButtonStyle}">
+                            <AccessText Text="S_tart" />
+                        </Button>
+                        <Button Margin="8,0,0,0" Content="Sto_p" Command="{Binding StopCommand}" MinWidth="120" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Live controls">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <CheckBox Content="_Microphone on" IsChecked="{Binding MicEnabled}" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource Shortcut}" Text="{Binding ToggleMicHotkey, TargetNullValue=''}" />
+
+                    <CheckBox Grid.Row="1" Content="_Sound on" IsChecked="{Binding SoundEnabled}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Shortcut}" Text="{Binding ToggleSoundHotkey, TargetNullValue=''}" />
+
+                    <CheckBox Grid.Row="2" Content="Show _overlay while streaming" IsChecked="{Binding ShowOverlay}" />
+
+                    <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Margin="0,8,0,0" Style="{StaticResource Hint}"
+                               Text="A stream that is off is neither sent nor played here. Minimize to hide the window in the tray." />
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

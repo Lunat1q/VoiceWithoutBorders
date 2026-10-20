@@ -24,6 +24,7 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
     private long _received;
     private long _rejected;
     private long _lastPeerTick; // Environment.TickCount64 of the last authentic packet; 0 = never
+    private readonly RoundTripClock _clock = new();
 
     public event Action<StreamKind, ArraySegment<byte>>? AudioReceived;
 
@@ -33,7 +34,7 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
         {
             var last = Interlocked.Read(ref _lastPeerTick);
             TimeSpan? sincePeer = last == 0 ? null : TimeSpan.FromMilliseconds(Environment.TickCount64 - last);
-            return new(Interlocked.Read(ref _sent), Interlocked.Read(ref _received), Interlocked.Read(ref _rejected), sincePeer);
+            return new(Interlocked.Read(ref _sent), Interlocked.Read(ref _received), Interlocked.Read(ref _rejected), sincePeer, _clock.RoundTrip);
         }
     }
 
@@ -54,6 +55,7 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
         Interlocked.Exchange(ref _received, 0);
         Interlocked.Exchange(ref _rejected, 0);
         Interlocked.Exchange(ref _lastPeerTick, 0);
+        _clock.Reset();
         _ = ReceiveLoopAsync(udp, codec, _cts.Token);
         _ = HeartbeatLoopAsync(_cts.Token);
         logger.LogInformation("Listening on UDP {Port}, peer {Peer}", port, peer);
@@ -121,7 +123,7 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
         {
             do
             {
-                TrySend(PacketType.Heartbeat, []);
+                TrySend(PacketType.Heartbeat, _clock.NextOutgoing(HeartbeatPayload.Now()).ToBytes());
             }
             while (await timer.WaitForNextTickAsync(cancellationToken));
         }
@@ -160,7 +162,11 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
                 }
                 Interlocked.Exchange(ref _lastPeerTick, Environment.TickCount64);
                 if (type == PacketType.Heartbeat)
+                {
+                    if (HeartbeatPayload.TryRead(pcm, out var heartbeat))
+                        _clock.OnIncoming(heartbeat, HeartbeatPayload.Now());
                     continue;
+                }
                 Interlocked.Increment(ref _received);
                 AudioReceived?.Invoke((StreamKind)type, pcm);
             }

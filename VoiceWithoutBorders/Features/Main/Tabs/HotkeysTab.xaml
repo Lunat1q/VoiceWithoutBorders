@@ -1,0 +1,58 @@
+<UserControl x:Class="VoiceWithoutBorders.Features.Main.Tabs.HotkeysTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:main="clr-namespace:VoiceWithoutBorders.Features.Main"
+             xmlns:hotkeys="clr-namespace:VoiceWithoutBorders.Features.Hotkeys"
+             xmlns:streaming="clr-namespace:VoiceWithoutBorders.Features.Streaming"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=main:MainViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/VoiceWithoutBorders;component/Features/Main/MainStyles.xaml" />
+    </UserControl.Resources>
+
+    <ScrollViewer Style="{StaticResource TabPage}">
+        <StackPanel>
+            <GroupBox Header="Hotkeys">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Label Content="M_icrophone on/off" Target="{Binding ElementName=MicHotkeyBox}" />
+                    <hotkeys:HotkeyBox x:Name="MicHotkeyBox" Grid.Column="1" Hotkey="{Binding ToggleMicHotkey}" />
+
+                    <Label Grid.Row="1" Content="Soun_d on/off" Target="{Binding ElementName=SoundHotkeyBox}" />
+                    <hotkeys:HotkeyBox x:Name="SoundHotkeyBox" Grid.Row="1" Grid.Column="1" Hotkey="{Binding ToggleSoundHotkey}" />
+
+                    <Label Grid.Row="2" Content="St_art/stop streaming" Target="{Binding ElementName=StartStopHotkeyBox}" />
+                    <hotkeys:HotkeyBox x:Name="StartStopHotkeyBox" Grid.Row="2" Grid.Column="1" Hotkey="{Binding StartStopHotkey}" />
+
+                    <StackPanel Grid.Row="3" Grid.Column="1">
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Click a box, then press the new combination (with Ctrl, Alt or Win, or a function key). Esc cancels, Backspace removes it." />
+                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding HotkeyStatus}" />
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="Overlay">
+                <StackPanel>
+                    <CheckBox Content="Show overlay _while streaming" IsChecked="{Binding ShowOverlay}" />
+                    <CheckBox Content="_Unlock to move it" IsChecked="{Binding OverlayUnlocked}" />
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="While unlocked the overlay stays visible so you can drag it anywhere. Lock it again to make it click-through; the spot is remembered." />
+                    <Button Margin="0,8,0,0" HorizontalAlignment="Left" Content="R_eset position" Command="{Binding ResetOverlayPositionCommand}" />
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

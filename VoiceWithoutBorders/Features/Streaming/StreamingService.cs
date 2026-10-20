@@ -32,6 +32,15 @@ public sealed class StreamingService(
 
     public void SetEnabled(StreamKind kind, bool enabled) => Volatile.Write(ref _enabled[(int)kind], enabled);
 
+    public IReadOnlyList<StreamLatency> GetLatency()
+    {
+        var roundTrip = transport.Stats.RoundTrip;
+        return _players
+            .OrderBy(pair => pair.Key)
+            .Select(pair => StreamLatency.Estimate(pair.Key, roundTrip, pair.Value.Stats))
+            .ToList();
+    }
+
     public StreamLevels ReadLevels() => new(
         TakePeak(StreamKind.Microphone, Sent), TakePeak(StreamKind.SystemAudio, Sent),
         TakePeak(StreamKind.Microphone, Received), TakePeak(StreamKind.SystemAudio, Received));

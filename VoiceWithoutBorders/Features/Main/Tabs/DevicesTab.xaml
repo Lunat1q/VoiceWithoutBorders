@@ -1,0 +1,86 @@
+<UserControl x:Class="VoiceWithoutBorders.Features.Main.Tabs.DevicesTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:main="clr-namespace:VoiceWithoutBorders.Features.Main"
+             xmlns:hotkeys="clr-namespace:VoiceWithoutBorders.Features.Hotkeys"
+             xmlns:streaming="clr-namespace:VoiceWithoutBorders.Features.Streaming"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=main:MainViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/VoiceWithoutBorders;component/Features/Main/MainStyles.xaml" />
+    </UserControl.Resources>
+
+    <ScrollViewer Style="{StaticResource TabPage}">
+        <StackPanel>
+            <Border Style="{StaticResource Warning}" Visibility="{Binding IsRunning, Converter={StaticResource VisibleWhenTrue}}">
+                <TextBlock TextWrapping="Wrap" Text="Stop streaming to change devices." />
+            </Border>
+            <Border Style="{StaticResource Warning}" Visibility="{Binding NoOutputDevices, Converter={StaticResource VisibleWhenTrue}}">
+                <TextBlock TextWrapping="Wrap">
+                    This computer has no playback devices, so it cannot play anything it receives. Install a virtual
+                    cable such as <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
+                    then press Refresh devices.
+                </TextBlock>
+            </Border>
+
+            <StackPanel IsEnabled="{Binding IsIdle}">
+
+                <GroupBox Header="Send to the other computer">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="170" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Label Content="My _microphone" Target="{Binding ElementName=MicCaptureBox}" />
+                        <ComboBox x:Name="MicCaptureBox" Grid.Column="1" ItemsSource="{Binding InputDevices}" SelectedItem="{Binding MicCapture}" />
+
+                        <Label Grid.Row="1" Content="_Sound playing on" Target="{Binding ElementName=SystemCaptureBox}" />
+                        <ComboBox x:Name="SystemCaptureBox" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemCapture}" />
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Play what the other computer sends">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="170" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Label Content="Its microphone _becomes" Target="{Binding ElementName=MicPlaybackBox}" />
+                        <ComboBox x:Name="MicPlaybackBox" Grid.Column="1" ItemsSource="{Binding VirtualMicrophones}" SelectedItem="{Binding MicPlayback}" />
+
+                        <StackPanel Grid.Row="1" Grid.Column="1">
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="Apps here (Teams, Discord…) pick this microphone to hear the other computer's mic." />
+                            <Border Style="{StaticResource Warning}" Margin="0,0,0,4"
+                                    Visibility="{Binding NoVirtualMicrophone, Converter={StaticResource VisibleWhenTrue}}">
+                                <TextBlock TextWrapping="Wrap">
+                                    No virtual microphone on this computer. Windows only lets a driver create microphones:
+                                    install the free <Hyperlink NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OpenLink">VB-CABLE</Hyperlink>,
+                                    then press Refresh devices.
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+
+                        <Label Grid.Row="2" Content="Play its s_ound on" Target="{Binding ElementName=SystemPlaybackBox}" />
+                        <ComboBox x:Name="SystemPlaybackBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding SystemPlayback}" />
+                    </Grid>
+                </GroupBox>
+
+                <Button HorizontalAlignment="Left" Content="_Refresh devices" Command="{Binding RefreshDevicesCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

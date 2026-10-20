@@ -5,7 +5,8 @@ namespace VoiceWithoutBorders.Infrastructure.Network;
 
 /// <summary>Audio packet counters plus how long ago the peer was last heard (any authentic packet, heartbeats included).</summary>
 /// <param name="SincePeer">Null until the peer has answered at least once.</param>
-public readonly record struct TransportStats(long Sent, long Received, long Rejected, TimeSpan? SincePeer = null);
+/// <param name="RoundTrip">Smoothed network round trip measured with heartbeats; null until measured.</param>
+public readonly record struct TransportStats(long Sent, long Received, long Rejected, TimeSpan? SincePeer = null, TimeSpan? RoundTrip = null);
 
 /// <summary>Encrypted, connectionless audio link to one peer machine.</summary>
 public interface IPeerTransport : IDisposable

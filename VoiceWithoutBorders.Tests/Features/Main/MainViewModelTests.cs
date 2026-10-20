@@ -27,6 +27,7 @@ public class MainViewModelTests
     {
         _streaming.Setup(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new IPEndPoint(IPAddress.Parse("192.168.1.20"), 15300));
+        _streaming.Setup(s => s.GetLatency()).Returns([]);
         _devices.Setup(d => d.GetInputDevices()).Returns([Mic]);
         _devices.Setup(d => d.GetOutputDevices()).Returns([Headset, CableInput]);
         _devices.Setup(d => d.GetVirtualMicrophones()).Returns([Cable]);
@@ -331,6 +332,47 @@ public class MainViewModelTests
         vm.ConnectionText.Should().Contain("different shared key");
         vm.IsSending.Should().BeTrue();
         vm.IsReceiving.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task UpdateLinkStatus_ShowsLatencyPerIncomingStream()
+    {
+        _streaming.Setup(s => s.Stats).Returns(new TransportStats(1, 1, 0, TimeSpan.Zero, RoundTrip: TimeSpan.FromMilliseconds(4)));
+        _streaming.Setup(s => s.GetLatency()).Returns(
+        [
+            new StreamLatency(StreamKind.Microphone, TimeSpan.FromMilliseconds(78), TimeSpan.FromMilliseconds(30), 0),
+            new StreamLatency(StreamKind.SystemAudio, TimeSpan.FromMilliseconds(210), TimeSpan.FromMilliseconds(160), 0),
+        ]);
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+        vm.LatencyText.Should().Be("Measuring latency…");
+
+        vm.UpdateLinkStatus();
+
+        vm.LatencyText.Should().Be("Network round trip 4 ms · their mic → here ≈ 78 ms · their sound → here ≈ 210 ms");
+        vm.LatencyHealth.Should().Be(LatencyHealth.Fair, "the worst stream decides");
+    }
+
+    [Fact]
+    public async Task UpdateLinkStatus_NewSkips_WarnForTenSecondsThenClear()
+    {
+        var skips = 0;
+        _streaming.Setup(s => s.Stats).Returns(new TransportStats(1, 1, 0, TimeSpan.Zero, TimeSpan.FromMilliseconds(4)));
+        _streaming.Setup(s => s.GetLatency()).Returns(() =>
+            [new StreamLatency(StreamKind.Microphone, TimeSpan.FromMilliseconds(80), TimeSpan.FromMilliseconds(40), skips)]);
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+
+        vm.UpdateLinkStatus();
+        vm.AudioSkipping.Should().BeFalse();
+
+        skips = 3;
+        vm.UpdateLinkStatus();
+        vm.AudioSkipping.Should().BeTrue();
+
+        for (var second = 0; second < 10; second++)
+            vm.UpdateLinkStatus();
+        vm.AudioSkipping.Should().BeFalse("no new skips for ten seconds");
     }
 
     [Fact]

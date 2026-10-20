@@ -26,4 +26,7 @@ public interface IStreamingService
 
     /// <summary>Returns and resets the peak levels, for activity meters.</summary>
     StreamLevels ReadLevels();
+
+    /// <summary>Latency estimate for every stream this computer plays, ordered microphone first.</summary>
+    IReadOnlyList<StreamLatency> GetLatency();
 }

@@ -16,15 +16,17 @@ VoiceWithoutBorders/
 ├── Features/
 │   ├── Hotkeys/                  # HotkeyBinding (record, key-press parsing, display), HotkeyBox (capture control),
 │   │                             #   HotkeyController (re-registers on change, reports conflicts in HotkeyStatus)
-│   ├── Main/                     # MainWindow.xaml(.cs) (tabs Stream / Connection / Devices / Hotkeys & overlay; minimize → tray),
+│   ├── Main/                     # MainWindow.xaml(.cs) (tab shell; minimize → tray), MainStyles.xaml (shared styles),
+│   │                             #   Tabs/ StreamTab, ConnectionTab, DevicesTab, HotkeysTab (one UserControl per tab),
 │   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
-│   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position, hotkey bindings)
+│   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position, hotkey bindings),
+│   │                             #   MainViewModel.Link (connection state, activity lights, latency, skip warning)
 │   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;
 │   │                             #   ticks on CompositionTarget.Rendering), OverlayViewModel + StreamIndicator (pure)
 │   ├── Settings/                 # AppSettings (record + Validate), ISettingsStore, JsonSettingsStore (DPAPI key),
 │   │                             #   SharedKeyGenerator
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,
-│   │                             #   per-stream enable, peak levels for the overlay), LinkMonitor (link health)
+│   │                             #   per-stream enable, peak levels for the overlay), LinkMonitor (link health), StreamLatency + LatencyHealth (end-to-end estimate)
 │   └── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu; the only WinForms use)
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
@@ -33,7 +35,8 @@ VoiceWithoutBorders/
     │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking + resampling helpers)
     ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window)
     └── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
-                                  #   PacketCodec (framing, AES-GCM, key derivation, replay window), PacketType
+                                  #   PacketCodec (framing, AES-GCM, key derivation, replay window), PacketType,
+                                  #   HeartbeatPayload + RoundTripClock (NTP-style round trip, no clock sync)
 ```
 
 ## Tests (`VoiceWithoutBorders.Tests/`)
@@ -82,7 +85,7 @@ also makes Windows Firewall treat the peer's traffic as replies, so a missing in
 | 6 | 4 | sequence | per type, big-endian |
 | 10 | 12 | nonce | random |
 | 22 | 16 | tag | AES-GCM tag |
-| 38 | n | ciphertext | PCM, n ≤ 960; empty for heartbeat |
+| 38 | n | ciphertext | PCM, n ≤ 960; heartbeat: 24 bytes `SentAt`, `EchoOf`, `HeldFor` (µs) |
 
 Bytes 0–9 are the AES-GCM associated data, so the header is authenticated too.
 

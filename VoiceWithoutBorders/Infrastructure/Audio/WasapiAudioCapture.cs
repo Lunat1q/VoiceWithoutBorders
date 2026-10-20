@@ -6,6 +6,9 @@ namespace VoiceWithoutBorders.Infrastructure.Audio;
 /// <summary>Records a microphone (or an output device in loopback) straight into the wire format.</summary>
 public sealed class WasapiAudioCapture : IAudioCapture
 {
+    /// <summary>Capture buffer; also the capture part of the end-to-end latency estimate.</summary>
+    public const int BufferMilliseconds = 20;
+
     private readonly MMDevice _device;
     private readonly WasapiRecorder _recorder;
     private readonly byte[] _chunk = new byte[WireFormat.ChunkBytes];
@@ -16,7 +19,7 @@ public sealed class WasapiAudioCapture : IAudioCapture
     {
         _device = device;
         // Shared mode with AutoConvertPcm: the Windows audio engine converts rate, depth and channels for us.
-        var builder = new WasapiRecorderBuilder().WithDevice(device).WithFormat(WireFormat.Format).WithBufferLength(20);
+        var builder = new WasapiRecorderBuilder().WithDevice(device).WithFormat(WireFormat.Format).WithBufferLength(BufferMilliseconds);
         _recorder = (loopback ? builder.WithLoopbackCapture() : builder).Build();
         _recorder.DataAvailable += OnDataAvailable;
     }

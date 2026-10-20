@@ -25,6 +25,11 @@ public sealed class LatencyCappedBuffer : IWaveProvider
 
     public TimeSpan BufferedDuration => _buffer.BufferedDuration;
 
+    /// <summary>How often audio was dropped to stay under the cap: a steady rise means the network is uneven.</summary>
+    public int Skips => Volatile.Read(ref _skips);
+
+    private int _skips;
+
     public int Read(Span<byte> buffer) => _buffer.Read(buffer);
 
     public void Write(ReadOnlySpan<byte> pcm)
@@ -32,7 +37,10 @@ public sealed class LatencyCappedBuffer : IWaveProvider
         // ponytail: sender and receiver sound cards drift apart, so latency creeps up over time. On overflow we
         // drop back to half the cap (a short audible skip). Upgrade path: adaptive resampling to track the drift.
         if (_buffer.BufferedBytes > _maxBytes)
+        {
             _buffer.Read(_scratch.AsSpan(0, Math.Min(_buffer.BufferedBytes - _targetBytes, _scratch.Length)));
+            Interlocked.Increment(ref _skips);
+        }
         _buffer.AddSamples(pcm);
     }
 }
