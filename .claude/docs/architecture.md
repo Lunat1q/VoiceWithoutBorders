@@ -1,0 +1,78 @@
+# Architecture — Structure and Data Flow
+
+Feature-sliced. `Features/` = user-facing slices, `Infrastructure/` = OS and network adapters. One type per file.
+
+## App (`VoiceWithoutBorders/`)
+
+```
+VoiceWithoutBorders/
+├── App.xaml(.cs)                 # Generic host bootstrap, shows MainWindow, disposes host on exit
+├── Extensions/
+│   └── ServiceCollectionExtensions.cs   # AddSettings, AddAudio, AddNetworking, AddStreaming, AddUi
+├── Models/
+│   └── StreamKind.cs             # Microphone | SystemAudio (byte on the wire)
+├── Features/
+│   ├── Main/                     # MainWindow.xaml(.cs), MainViewModel (commands, device pickers, status/stats)
+│   ├── Settings/                 # AppSettings (record + Validate), ISettingsStore, JsonSettingsStore (DPAPI key)
+│   └── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport)
+└── Infrastructure/
+    ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
+    │                             #   IAudioEndpointFactory/WasapiEndpointFactory, IAudioCapture/WasapiAudioCapture,
+    │                             #   IAudioPlayer/WasapiAudioPlayer, LatencyCappedBuffer (jitter buffer),
+    │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking + resampling helpers)
+    └── Network/                  # IPeerTransport/UdpPeerTransport (socket, receive loop, stats),
+                                  #   PacketCodec (framing, AES-GCM, key derivation, replay window)
+```
+
+## Tests (`VoiceWithoutBorders.Tests/`)
+
+Mirrors the app tree: `Features/{Main,Settings,Streaming}`, `Infrastructure/{Audio,Network}`, `Extensions/`.
+
+## Data flow
+
+```
+Sender                                                     Receiver
+──────                                                     ────────
+WasapiRecorder (mic, or loopback of an output device)
+  │  Windows converts to 48 kHz / 16-bit / stereo
+  ▼
+WasapiAudioCapture ──960-byte chunks──► StreamingService
+                                          │ Send(kind, chunk)
+                                          ▼
+                                     UdpPeerTransport
+                                          │ PacketCodec.Encode (AES-GCM)
+                                          ▼
+                                   UDP :15300 ───────────►  UdpPeerTransport receive loop
+                                                              │ PacketCodec.TryDecode
+                                                              ▼
+                                                            StreamingService.OnAudioReceived
+                                                              │ player for that StreamKind
+                                                              ▼
+                                                            WasapiAudioPlayer
+                                                              │ LatencyCappedBuffer → resample to device rate
+                                                              ▼
+                                                            WasapiPlayer (headset, or virtual cable input)
+```
+
+## Packet layout (v1)
+
+| Offset | Size | Field | Notes |
+|-------:|-----:|-------|-------|
+| 0 | 1 | version | `1` |
+| 1 | 1 | kind | `StreamKind` |
+| 2 | 4 | session | random per codec, big-endian |
+| 6 | 4 | sequence | per kind, big-endian |
+| 10 | 12 | nonce | random |
+| 22 | 16 | tag | AES-GCM tag |
+| 38 | n | ciphertext | PCM, n ≤ 960 |
+
+Bytes 0–9 are the AES-GCM associated data, so the header is authenticated too.
+
+## Threads
+
+| Thread | Work |
+|--------|------|
+| UI | View model, start/stop, device enumeration |
+| Capture (one per active capture, NAudio) | Chunk + encrypt + `SendTo` |
+| Receive loop (thread pool) | Decrypt + write to jitter buffer |
+| Playback (one per active player, NAudio) | Read jitter buffer into the device |

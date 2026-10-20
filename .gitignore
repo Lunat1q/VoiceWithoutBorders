@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.lscache
+out/
+publish/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="VoiceWithoutBorders.Tests/VoiceWithoutBorders.Tests.csproj" />
+  <Project Path="VoiceWithoutBorders/VoiceWithoutBorders.csproj" />
+</Solution>
