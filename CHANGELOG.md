@@ -6,6 +6,7 @@
 - Audio resumes by itself after either computer sleeps or hibernates: when the other computer answers again, or this one wakes up, streaming reopens the devices and resolves the other computer's address again.
 - *Start with Windows* (into the tray) and *Then connect by itself* on the Connection tab.
 - Only one copy runs: launching it again brings up the running window.
+- Installer (per user, no admin rights) next to the portable zip, and in-app updates from GitHub Releases: offered on the Stream tab, checked against the release's SHA-256 before running, reopened afterwards (streaming again if it was). The version is in the title bar.
 
 ## 0.1.0 — 2026-10-20
 

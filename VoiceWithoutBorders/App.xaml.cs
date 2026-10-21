@@ -7,7 +7,9 @@ using VoiceWithoutBorders.Features.Hotkeys;
 using VoiceWithoutBorders.Features.Main;
 using VoiceWithoutBorders.Features.Overlay;
 using VoiceWithoutBorders.Features.Tray;
+using VoiceWithoutBorders.Features.Updates;
 using VoiceWithoutBorders.Infrastructure.Interop;
+using VoiceWithoutBorders.Infrastructure.Updates;
 
 namespace VoiceWithoutBorders;
 
@@ -50,8 +52,11 @@ public partial class App : Application
         _showWait = ThreadPool.RegisterWaitForSingleObject(_showRequest, (_, _) => Dispatcher.BeginInvoke(window.Restore), null, Timeout.Infinite, executeOnlyOnce: false);
         _viewModel = services.GetRequiredService<MainViewModel>();
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
-        if (startedWithWindows)
+        if (e.Args.Contains(InnoSetupUpdateInstaller.ResumeArgument))
+            _ = _viewModel.ConnectWithRetriesAsync(MainViewModel.AutoConnectRetryDelay);
+        else if (startedWithWindows)
             _ = _viewModel.OnStartedWithWindowsAsync(MainViewModel.AutoConnectRetryDelay);
+        _ = services.GetRequiredService<UpdateViewModel>().CheckInBackgroundAsync();
     }
 
     // Raised on a system events thread.

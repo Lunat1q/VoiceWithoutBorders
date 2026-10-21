@@ -25,12 +25,17 @@ public sealed partial class MainViewModel
     /// <summary>Called once when Windows launched the app at sign-in.</summary>
     public async Task OnStartedWithWindowsAsync(TimeSpan retryDelay)
     {
-        if (!AutoConnect || ToSettings().Validate().Count > 0)
-            return;
+        if (AutoConnect)
+            await ConnectWithRetriesAsync(retryDelay);
+    }
+
+    /// <summary>After sign-in, or reopened by an update that interrupted streaming.</summary>
+    public async Task ConnectWithRetriesAsync(TimeSpan retryDelay)
+    {
         for (var attempt = 1; ; attempt++)
         {
             await StartAsync();
-            if (IsRunning || attempt == AutoConnectAttempts)
+            if (IsRunning || attempt == AutoConnectAttempts || ToSettings().Validate().Count > 0)
                 return;
             Status += $"{Environment.NewLine}Trying again in {retryDelay.TotalSeconds:0} s…";
             await Task.Delay(retryDelay);

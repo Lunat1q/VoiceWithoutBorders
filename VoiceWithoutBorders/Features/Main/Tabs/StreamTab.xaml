@@ -14,6 +14,29 @@
 
     <ScrollViewer Style="{StaticResource TabPage}">
         <StackPanel>
+            <!-- An offer, never a demand: installing closes the app for a few seconds. -->
+            <Border Style="{StaticResource Notice}" Visibility="{Binding Update.IsOffered, Converter={StaticResource VisibleWhenTrue}}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="_Update now" Command="{Binding Update.InstallCommand}" />
+                        <Button Margin="8,0,0,0" Content="_Not now" Command="{Binding Update.DismissCommand}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="{Binding Update.Headline}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Style="{StaticResource Hint}" Text="It closes, installs and reopens in a few seconds; streaming picks up again." />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            <Border Style="{StaticResource Notice}" Visibility="{Binding Update.IsInstalling, Converter={StaticResource VisibleWhenTrue}}">
+                <StackPanel>
+                    <TextBlock Text="Downloading the update…" />
+                    <ProgressBar Margin="0,6,0,0" Height="4" Maximum="100" Value="{Binding Update.DownloadPercent}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Warning}" Visibility="{Binding Update.HasError, Converter={StaticResource VisibleWhenTrue}}">
+                <TextBlock Text="{Binding Update.Error}" TextWrapping="Wrap" />
+            </Border>
+
             <GroupBox Header="Status">
                 <StackPanel>
                     <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="15" />

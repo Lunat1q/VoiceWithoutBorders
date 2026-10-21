@@ -7,7 +7,9 @@ using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Tests.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
+using VoiceWithoutBorders.Features.Updates;
 using VoiceWithoutBorders.Infrastructure.Interop;
+using VoiceWithoutBorders.Infrastructure.Updates;
 using VoiceWithoutBorders.Infrastructure.Network;
 using VoiceWithoutBorders.Models;
 
@@ -44,7 +46,8 @@ public class MainViewModelTests
         });
     }
 
-    private MainViewModel Create() => new(_streaming.Object, _store.Object, _devices.Object, _startup.Object);
+    private MainViewModel Create() =>
+        new(_streaming.Object, _store.Object, _devices.Object, _startup.Object, new UpdateViewModel(new Mock<IUpdateChecker>().Object, new Mock<IUpdateInstaller>().Object, new Mock<IStreamingService>().Object));
 
     [Fact]
     public void Constructor_LoadsSettingsAndSelectsSavedDevices()
@@ -537,6 +540,18 @@ public class MainViewModelTests
 
         vm.IsRunning.Should().BeTrue();
         _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task ConnectWithRetries_InvalidSettings_ShowsWhyOnceWithoutRetrying()
+    {
+        _store.Setup(s => s.Load()).Returns(AppSettingsTests.Valid with { PeerHost = "" });
+        var vm = Create();
+
+        await vm.ConnectWithRetriesAsync(TimeSpan.Zero);
+
+        vm.Status.Should().Contain("computer's name").And.NotContain("Trying again");
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

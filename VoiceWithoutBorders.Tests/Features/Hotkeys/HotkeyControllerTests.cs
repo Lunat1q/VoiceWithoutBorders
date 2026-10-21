@@ -6,7 +6,9 @@ using VoiceWithoutBorders.Features.Main;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
+using VoiceWithoutBorders.Features.Updates;
 using VoiceWithoutBorders.Infrastructure.Interop;
+using VoiceWithoutBorders.Infrastructure.Updates;
 
 namespace VoiceWithoutBorders.Tests.Features.Hotkeys;
 
@@ -30,7 +32,8 @@ public class HotkeyControllerTests
         devices.Setup(d => d.GetInputDevices()).Returns([]);
         devices.Setup(d => d.GetOutputDevices()).Returns([]);
         devices.Setup(d => d.GetVirtualMicrophones()).Returns([]);
-        _vm = new MainViewModel(new Mock<IStreamingService>().Object, store.Object, devices.Object, new Mock<IStartupRegistration>().Object);
+        _vm = new MainViewModel(new Mock<IStreamingService>().Object, store.Object, devices.Object, new Mock<IStartupRegistration>().Object,
+            new UpdateViewModel(new Mock<IUpdateChecker>().Object, new Mock<IUpdateInstaller>().Object, new Mock<IStreamingService>().Object));
         _sut = new HotkeyController(_hotkeys.Object, _vm);
     }
 

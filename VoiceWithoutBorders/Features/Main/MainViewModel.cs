@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using VoiceWithoutBorders.Features.Overlay;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
+using VoiceWithoutBorders.Features.Updates;
 using VoiceWithoutBorders.Infrastructure.Audio;
 using VoiceWithoutBorders.Infrastructure.Interop;
 using VoiceWithoutBorders.Models;
@@ -50,8 +51,9 @@ public sealed partial class MainViewModel : ObservableObject
     // True while settings or device lists are being (re)loaded, so those writes are not saved back.
     private bool _loading = true;
 
-    public MainViewModel(IStreamingService streaming, ISettingsStore store, IAudioDeviceService devices, IStartupRegistration startup)
+    public MainViewModel(IStreamingService streaming, ISettingsStore store, IAudioDeviceService devices, IStartupRegistration startup, UpdateViewModel update)
     {
+        Update = update;
         _streaming = streaming;
         _store = store;
         _devices = devices;
@@ -89,6 +91,8 @@ public sealed partial class MainViewModel : ObservableObject
             Status = $"Could not save settings: {ex.Message}";
         }
     }
+
+    public UpdateViewModel Update { get; }
 
     public ObservableCollection<AudioDevice> InputDevices { get; } = [];
 

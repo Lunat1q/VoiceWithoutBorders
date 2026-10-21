@@ -30,7 +30,8 @@ VoiceWithoutBorders/
 │   │                             #   SharedKeyGenerator
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,
 │   │                             #   per-stream enable, peak levels for the overlay), LinkMonitor (link health), StreamLatency + LatencyHealth (end-to-end estimate)
-│   └── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu; the only WinForms use)
+│   ├── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu; the only WinForms use)
+│   └── Updates/                  # UpdateViewModel (offer on the Stream tab, install, streaming resumes afterwards)
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
     │                             #   IAudioEndpointFactory/WasapiEndpointFactory, IAudioCapture/WasapiAudioCapture,
@@ -38,14 +39,20 @@ VoiceWithoutBorders/
     │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking + resampling helpers)
     ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window),
     │                             #   IStartupRegistration/RunKeyStartupRegistration (HKCU Run entry)
-    └── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
-                                  #   PacketCodec (framing, AES-GCM, key derivation, replay window), PacketType,
-                                  #   HeartbeatPayload + RoundTripClock (NTP-style round trip, no clock sync)
+    ├── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
+    │                             #   PacketCodec (framing, AES-GCM, key derivation, replay window), PacketType,
+    │                             #   HeartbeatPayload + RoundTripClock (NTP-style round trip, no clock sync)
+    └── Updates/                  # IUpdateChecker/GitHubUpdateChecker (releases/latest → Setup asset + .sha256),
+                                  #   IUpdateInstaller/InnoSetupUpdateInstaller (GitHub hosts only, SHA-256 must match,
+                                  #   silent install, app reopens with --resume), UpdateInfo, AppVersion
 ```
+
+`installer/VoiceWithoutBorders.iss`: Inno Setup, per user (`%LOCALAPPDATA%\Programs`), wraps the single-file exe and
+LICENSE, removes the Run entry on uninstall, reopens the app after a silent install.
 
 ## Tests (`VoiceWithoutBorders.Tests/`)
 
-Mirrors the app tree: `Features/{Hotkeys,Main,Overlay,Settings,Streaming}`, `Infrastructure/{Audio,Network}`, `Extensions/`.
+Mirrors the app tree: `Features/{Hotkeys,Main,Overlay,Settings,Streaming,Updates}`, `Infrastructure/{Audio,Network,Updates}`, `Extensions/`.
 Windows, tray icon and hotkeys are thin Win32/WPF glue and are not unit-tested; their logic lives in view models.
 
 ## Data flow

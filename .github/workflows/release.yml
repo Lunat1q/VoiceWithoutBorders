@@ -1,6 +1,7 @@
-# Builds, tests, signs (once enabled) and publishes a release.
+# Builds, tests, signs (once enabled) and publishes a release: installer + its .sha256 (the in-app updater's feed) and
+# the portable zip.
 #   Release: push a tag vX.Y.Z matching <Version> in the csproj, with a "## X.Y.Z — date" section in CHANGELOG.md.
-#   Dry run: run this workflow by hand on main; it does everything except publish, and uploads the zip as an artifact.
+#   Dry run: run this workflow by hand on main; it does everything except publish, and uploads the installer and zip as an artifact.
 # Signing (Azure Artifact Signing through a federated login, no secrets) is currently OFF: releases ship unsigned.
 # It turns on when the release environment variable SIGNING_ENABLED is "true"; see "Code signing" in CLAUDE.md.
 name: Release
@@ -39,6 +40,7 @@ jobs:
           }
           "version=$version" >> $env:GITHUB_OUTPUT
           "zip=VoiceWithoutBorders-$version-win-x64.zip" >> $env:GITHUB_OUTPUT
+          "setup=VoiceWithoutBorders-Setup-$version.exe" >> $env:GITHUB_OUTPUT
 
       - name: Test
         run: dotnet test VoiceWithoutBorders.slnx -c Release
@@ -89,6 +91,46 @@ jobs:
           if ($signature.Status -ne 'Valid') { throw "Signature is $($signature.Status): $($signature.StatusMessage)" }
           "Signed by: $($signature.SignerCertificate.Subject)"
 
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; if ($LASTEXITCODE) { throw 'Inno Setup install failed' } }
+          & $iscc /Q "/DMyAppVersion=${{ steps.version.outputs.version }}" installer\VoiceWithoutBorders.iss
+          if ($LASTEXITCODE) { throw "ISCC failed ($LASTEXITCODE)" }
+
+      - name: Sign installer
+        if: env.SIGNED == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.SIGNING_PROFILE }}
+          files: ${{ github.workspace }}\publish\${{ steps.version.outputs.setup }}
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Voice Without Borders
+          description-url: https://github.com/${{ github.repository }}
+          # Use the azure/login session above and nothing else.
+          exclude-environment-credential: true
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
+
+      - name: Verify installer signature
+        if: env.SIGNED == 'true'
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature 'publish/${{ steps.version.outputs.setup }}'
+          if ($signature.Status -ne 'Valid') { throw "Signature is $($signature.Status): $($signature.StatusMessage)" }
+          "Signed by: $($signature.SignerCertificate.Subject)"
+
       - name: Zip and write release notes
         shell: pwsh
         run: |
@@ -96,6 +138,10 @@ jobs:
           $zip = 'publish/${{ steps.version.outputs.zip }}'
           Compress-Archive -Path $env:EXE, LICENSE -DestinationPath $zip -CompressionLevel Optimal
           $sha = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          $setup = '${{ steps.version.outputs.setup }}'
+          $setupSha = (Get-FileHash "publish/$setup" -Algorithm SHA256).Hash.ToLower()
+          # The updater refuses a release without this file.
+          Set-Content -Path "publish/$setup.sha256" -Value "$setupSha  $setup" -NoNewline
 
           $changelog = Get-Content CHANGELOG.md -Raw
           $section = [regex]::Match($changelog, "(?ms)^## $([regex]::Escape($version)) [^\n]*\n(.*?)(?=^## |\z)")
@@ -109,6 +155,8 @@ jobs:
           (Get-Content .github/release-template.md -Raw).
             Replace('{{VERSION}}', $version).
             Replace('{{ZIP}}', '${{ steps.version.outputs.zip }}').
+            Replace('{{SETUP}}', $setup).
+            Replace('{{SETUP_SHA256}}', $setupSha).
             Replace('{{SIGNING_NOTE}}', $signingNote).
             Replace('{{CHANGES}}', $section.Groups[1].Value.Trim()).
             Replace('{{SHA256}}', $sha) | Set-Content publish/release-notes.md
@@ -120,6 +168,8 @@ jobs:
         with:
           name: ${{ steps.version.outputs.zip }}
           path: |
+            publish/${{ steps.version.outputs.setup }}
+            publish/${{ steps.version.outputs.setup }}.sha256
             publish/${{ steps.version.outputs.zip }}
             publish/release-notes.md
 
@@ -128,5 +178,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
-          gh release create ${{ github.ref_name }} publish/${{ steps.version.outputs.zip }} --verify-tag
+          gh release create ${{ github.ref_name }} publish/${{ steps.version.outputs.setup }} publish/${{ steps.version.outputs.setup }}.sha256
+          publish/${{ steps.version.outputs.zip }} --verify-tag
           --title "Voice Without Borders ${{ steps.version.outputs.version }}" --notes-file publish/release-notes.md

@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Threading;
+using VoiceWithoutBorders.Infrastructure.Updates;
 
 namespace VoiceWithoutBorders.Features.Main;
 
@@ -10,6 +11,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = viewModel;
+        Title += $" {AppVersion.Number}";
 
         var statsTimer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => viewModel.UpdateLinkStatus(), Dispatcher);
         Closed += (_, _) => statsTimer.Stop();
