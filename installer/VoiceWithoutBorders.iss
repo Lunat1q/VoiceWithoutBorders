@@ -1,12 +1,16 @@
 ; Per-user installer around the single-file exe: no admin rights, installs to %LOCALAPPDATA%\Programs.
 ; Built by .github/workflows/release.yml after the publish step:
-;   iscc /DMyAppVersion=x.y.z installer\VoiceWithoutBorders.iss   ->  publish\VoiceWithoutBorders-Setup-x.y.z.exe
+;   iscc installer\VoiceWithoutBorders.iss   ->  publish\VoiceWithoutBorders-Setup-x.y.z.exe
 ; The in-app updater looks for exactly that asset name (GitHubUpdateChecker.Pick) and its .sha256.
 #define MyAppName "Voice Without Borders"
-#ifndef MyAppVersion
-  #define MyAppVersion "0.0.0"
-#endif
 #define MyAppExeName "VoiceWithoutBorders.exe"
+; Read from the exe (the csproj's <Version>, as x.y.z.0), so the installer can never be labelled with a version
+; other than the one it installs.
+#define ExeVersion GetVersionNumbersString(SourcePath + "..\publish\win-x64\" + MyAppExeName)
+#if ExeVersion == ""
+  #error Publish the exe to publish\win-x64 first.
+#endif
+#define MyAppVersion Copy(ExeVersion, 1, RPos(".", ExeVersion) - 1)
 #define MyAppURL "https://github.com/Lunat1q/VoiceWithoutBorders"
 
 [Setup]

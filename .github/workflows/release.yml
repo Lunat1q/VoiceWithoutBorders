@@ -96,7 +96,7 @@ jobs:
         run: |
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; if ($LASTEXITCODE) { throw 'Inno Setup install failed' } }
-          & $iscc /Q "/DMyAppVersion=${{ steps.version.outputs.version }}" installer\VoiceWithoutBorders.iss
+          & $iscc /Q installer\VoiceWithoutBorders.iss
           if ($LASTEXITCODE) { throw "ISCC failed ($LASTEXITCODE)" }
 
       - name: Sign installer

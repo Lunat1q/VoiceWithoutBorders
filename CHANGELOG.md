@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 — 2026-10-21
 
 - Default *Max latency* is now 200 ms (existing settings keep their value).
 - Audio resumes by itself after either computer sleeps or hibernates: when the other computer answers again, or this one wakes up, streaming reopens the devices and resolves the other computer's address again.

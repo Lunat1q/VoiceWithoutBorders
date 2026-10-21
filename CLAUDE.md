@@ -9,7 +9,7 @@ Windows desktop app that shares microphone and system sound between two PCs on a
 | Build | `dotnet build VoiceWithoutBorders.slnx` | repo root |
 | Tests | `dotnet test VoiceWithoutBorders.slnx` | repo root |
 | Portable build (single self-contained exe) | `dotnet publish VoiceWithoutBorders/VoiceWithoutBorders.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish/win-x64` | repo root |
-| Installer (after the portable build) | `iscc /DMyAppVersion=x.y.z installer\VoiceWithoutBorders.iss` → `publish\VoiceWithoutBorders-Setup-x.y.z.exe`. Never run the setup from an agent session: it launches the app. | repo root |
+| Installer (after the portable build) | `iscc installer\VoiceWithoutBorders.iss` → `publish\VoiceWithoutBorders-Setup-x.y.z.exe` (version read from the exe). Never run the setup from an agent session: it launches the app. | repo root |
 | GitHub release | bump `<Version>` in the csproj, add a `## x.y.z — date` section to `CHANGELOG.md`, commit, then `git tag vx.y.z && git push origin vx.y.z`. `.github/workflows/release.yml` tests, builds, signs (when enabled), builds the installer and its `.sha256`, zips exe + `LICENSE` (GPL needs the text alongside binaries), fills `.github/release-template.md` and publishes all three. The in-app updater only takes `VoiceWithoutBorders-Setup-<version>.exe` with a matching `.sha256`; a release without them is skipped or refused. Dry run: `gh workflow run release.yml` on main → files as a workflow artifact, no release. | repo root |
 
 ### Code signing
