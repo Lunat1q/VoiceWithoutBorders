@@ -16,12 +16,17 @@ namespace VoiceWithoutBorders.Features.Overlay;
 public partial class OverlayWindow : Window
 {
     private const double TopMargin = 8;
+
+    // Another topmost window that comes to the front (a borderless game, a video player, the taskbar) lands above
+    // this one, and Topmost="True" alone never puts it back.
+    private static readonly TimeSpan RaiseInterval = TimeSpan.FromSeconds(1);
     private static readonly Brush UnlockedBorder = new SolidColorBrush(Color.FromRgb(0x26, 0xC6, 0xDA));
     private static readonly Brush LockedBorder = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
 
     private readonly MainViewModel _main;
     private readonly Stopwatch _clock = new();
     private TimeSpan _lastFrame;
+    private TimeSpan _lastRaise;
 
     public OverlayWindow(MainViewModel main)
     {
@@ -57,7 +62,8 @@ public partial class OverlayWindow : Window
             Show();
             Place();
             _clock.Restart();
-            _lastFrame = TimeSpan.Zero;
+            _lastFrame = _lastRaise = TimeSpan.Zero;
+            RaiseToTop();
             CompositionTarget.Rendering += OnFrame;
         }
         else if (!_main.OverlayVisible && IsVisible)
@@ -72,7 +78,17 @@ public partial class OverlayWindow : Window
         var now = _clock.Elapsed;
         _main.TickOverlay((now - _lastFrame).TotalSeconds);
         _lastFrame = now;
+        if (now - _lastRaise >= RaiseInterval)
+        {
+            _lastRaise = now;
+            RaiseToTop();
+        }
     }
+
+    // ponytail: polled once a second; a foreground-change hook (SetWinEventHook) would react instantly.
+    // Exclusive-fullscreen games cannot be drawn over by any window.
+    private void RaiseToTop() =>
+        NativeMethods.SetWindowPos(new WindowInteropHelper(this).Handle, NativeMethods.HwndTopmost, 0, 0, 0, 0, NativeMethods.SwpNoSizeMoveActivate);
 
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The overlay stays on top of other always-on-top windows (borderless games, video players, the taskbar): it raises itself again every second while shown.
+
 ## 0.2.0 — 2026-10-21
 
 - Default *Max latency* is now 200 ms (existing settings keep their value).
