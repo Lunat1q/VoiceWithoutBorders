@@ -14,6 +14,12 @@ public sealed partial class MainViewModel
     private int _lastSkips;
     private int _skipWarningLeft;
 
+    // After the peer went quiet, or this computer slept, devices may have been reset and the peer's address changed.
+    // Streaming reopens everything once the peer answers again, rather than playing into a dead device.
+    private bool _wasConnected;
+    private bool _restartWhenConnected;
+    private bool _restarting;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ConnectionText))]
     private PeerConnection _connection;
@@ -38,11 +44,20 @@ public sealed partial class MainViewModel
     /// <summary>Called once a second by the view.</summary>
     public void UpdateLinkStatus()
     {
-        if (!IsRunning)
+        if (!IsRunning || _restarting)
             return;
         var stats = _streaming.Stats;
         var link = _link.Update(stats);
         Connection = link.Connection;
+        if (link.Connection != PeerConnection.Connected)
+            _restartWhenConnected |= _wasConnected;
+        else if (_restartWhenConnected)
+        {
+            _ = RestartAsync();
+            return;
+        }
+        else
+            _wasConnected = true;
         IsSending = link.Sending;
         IsReceiving = link.Receiving;
 
@@ -61,9 +76,27 @@ public sealed partial class MainViewModel
         AudioSkipping = _skipWarningLeft > 0;
     }
 
+    /// <summary>Called when Windows resumes from sleep or hibernation.</summary>
+    public void OnSystemResumed() => _restartWhenConnected |= IsRunning;
+
+    // ponytail: one attempt; a device still missing right after resume stops streaming with the reason in Status.
+    private async Task RestartAsync()
+    {
+        _restarting = true;
+        try
+        {
+            await StartAsync();
+        }
+        finally
+        {
+            _restarting = false;
+        }
+    }
+
     private void ResetLink()
     {
         _link.Reset();
+        _wasConnected = _restartWhenConnected = false;
         _lastSkips = 0;
         _skipWarningLeft = 0;
         Connection = PeerConnection.Waiting;

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Default *Max latency* is now 200 ms (existing settings keep their value).
+- Audio resumes by itself after either computer sleeps or hibernates: when the other computer answers again, or this one wakes up, streaming reopens the devices and resolves the other computer's address again.
+- *Start with Windows* (into the tray) and *Then connect by itself* on the Connection tab.
+- Only one copy runs: launching it again brings up the running window.
+
 ## 0.1.0 — 2026-10-20
 
 First public release, licensed under GPL-3.0-or-later.

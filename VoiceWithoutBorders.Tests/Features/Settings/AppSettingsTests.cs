@@ -15,6 +15,15 @@ public class AppSettingsTests
     [Fact]
     public void Validate_ValidSettings_NoErrors() => Valid.Validate().Should().BeEmpty();
 
+    [Fact]
+    public void Defaults_LatencyCapSurvivesWiFi_AndNoAutoConnect()
+    {
+        var settings = new AppSettings();
+
+        settings.MaxLatencyMs.Should().Be(200);
+        settings.AutoConnect.Should().BeFalse();
+    }
+
     [Theory]
     [InlineData("", "16-char-key-ok!!", 15300, 120, "computer's name")]
     [InlineData("pc", "too-short", 15300, 120, "at least 16")]

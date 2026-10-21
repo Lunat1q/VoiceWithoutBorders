@@ -4,8 +4,10 @@ using Moq;
 using VoiceWithoutBorders.Features.Hotkeys;
 using VoiceWithoutBorders.Features.Main;
 using VoiceWithoutBorders.Features.Settings;
+using VoiceWithoutBorders.Tests.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
+using VoiceWithoutBorders.Infrastructure.Interop;
 using VoiceWithoutBorders.Infrastructure.Network;
 using VoiceWithoutBorders.Models;
 
@@ -22,6 +24,7 @@ public class MainViewModelTests
     private readonly Mock<IStreamingService> _streaming = new();
     private readonly Mock<ISettingsStore> _store = new();
     private readonly Mock<IAudioDeviceService> _devices = new();
+    private readonly Mock<IStartupRegistration> _startup = new();
 
     public MainViewModelTests()
     {
@@ -41,7 +44,7 @@ public class MainViewModelTests
         });
     }
 
-    private MainViewModel Create() => new(_streaming.Object, _store.Object, _devices.Object);
+    private MainViewModel Create() => new(_streaming.Object, _store.Object, _devices.Object, _startup.Object);
 
     [Fact]
     public void Constructor_LoadsSettingsAndSelectsSavedDevices()
@@ -390,5 +393,163 @@ public class MainViewModelTests
         vm.StopCommand.Execute(null);
         vm.IsSending.Should().BeFalse();
         vm.IsReceiving.Should().BeFalse();
+    }
+
+    private static TransportStats PeerHeard(double secondsAgo) => new(10, 10, 0, TimeSpan.FromSeconds(secondsAgo));
+
+    [Fact]
+    public async Task UpdateLinkStatus_PeerBackAfterGoingQuiet_ReopensStreaming()
+    {
+        // Regression: the other computer hibernated; when it came back its audio devices were reset and it got a new
+        // address, but this side kept playing into the old devices and sending to the old address.
+        var stats = PeerHeard(0.2);
+        _streaming.Setup(s => s.Stats).Returns(() => stats);
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+
+        vm.UpdateLinkStatus();
+        stats = PeerHeard(30);
+        vm.UpdateLinkStatus();
+        vm.Connection.Should().Be(PeerConnection.Waiting);
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Once);
+
+        stats = PeerHeard(0.2);
+        vm.UpdateLinkStatus();
+
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        vm.IsRunning.Should().BeTrue();
+        vm.UpdateLinkStatus();
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(2), "only once per reconnect");
+    }
+
+    [Fact]
+    public async Task UpdateLinkStatus_FirstAnswer_DoesNotRestart()
+    {
+        var stats = new TransportStats(1, 0, 0);
+        _streaming.Setup(s => s.Stats).Returns(() => stats);
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+
+        vm.UpdateLinkStatus();
+        stats = PeerHeard(0.2);
+        vm.UpdateLinkStatus();
+
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnSystemResumed_ReopensStreamingOnceThePeerAnswers()
+    {
+        _streaming.Setup(s => s.Stats).Returns(PeerHeard(0.2));
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+        vm.UpdateLinkStatus();
+
+        vm.OnSystemResumed();
+        vm.UpdateLinkStatus();
+
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Reconnect_RestartFails_StopsWithReason()
+    {
+        var stats = PeerHeard(0.2);
+        _streaming.Setup(s => s.Stats).Returns(() => stats);
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+        vm.UpdateLinkStatus();
+        _streaming.Setup(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Headset is gone"));
+
+        vm.OnSystemResumed();
+        vm.UpdateLinkStatus();
+
+        vm.IsRunning.Should().BeFalse();
+        vm.Status.Should().Contain("Headset is gone");
+    }
+
+    [Fact]
+    public void StartWithWindows_ReadFromWindowsAndRefreshedWithTheCurrentExe()
+    {
+        _startup.Setup(s => s.IsEnabled).Returns(true);
+
+        var vm = Create();
+
+        vm.StartWithWindows.Should().BeTrue();
+        _startup.Verify(s => s.SetEnabled(true), Times.Once);
+    }
+
+    [Fact]
+    public void StartWithWindows_Toggling_ChangesWindowsEntryNotSettingsFile()
+    {
+        var vm = Create();
+
+        vm.StartWithWindows = true;
+        vm.StartWithWindows = false;
+
+        _startup.Verify(s => s.SetEnabled(true), Times.Once);
+        _startup.Verify(s => s.SetEnabled(false), Times.Once);
+        _store.Verify(s => s.Save(It.IsAny<AppSettings>()), Times.Never);
+    }
+
+    [Fact]
+    public void StartWithWindows_RegistryFails_ShowsStatus()
+    {
+        _startup.Setup(s => s.SetEnabled(true)).Throws(new UnauthorizedAccessException("denied"));
+        var vm = Create();
+
+        vm.StartWithWindows = true;
+
+        vm.Status.Should().Contain("denied");
+    }
+
+    [Fact]
+    public void AutoConnect_IsSaved()
+    {
+        var vm = Create();
+
+        vm.AutoConnect = true;
+
+        _store.Verify(s => s.Save(It.Is<AppSettings>(saved => saved.AutoConnect)));
+    }
+
+    [Fact]
+    public async Task OnStartedWithWindows_AutoConnectOff_DoesNotStart()
+    {
+        var vm = Create();
+
+        await vm.OnStartedWithWindowsAsync(TimeSpan.Zero);
+
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task OnStartedWithWindows_RetriesUntilTheNetworkIsUp()
+    {
+        _store.Setup(s => s.Load()).Returns(AppSettingsTests.Valid with { AutoConnect = true });
+        _streaming.SetupSequence(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Can't find 'OFFICE-PC'"))
+            .ReturnsAsync(new IPEndPoint(IPAddress.Loopback, 15300));
+        var vm = Create();
+
+        await vm.OnStartedWithWindowsAsync(TimeSpan.Zero);
+
+        vm.IsRunning.Should().BeTrue();
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task OnStartedWithWindows_GivesUpAfterTheLastAttempt()
+    {
+        _store.Setup(s => s.Load()).Returns(AppSettingsTests.Valid with { AutoConnect = true });
+        _streaming.Setup(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("offline"));
+        var vm = Create();
+
+        await vm.OnStartedWithWindowsAsync(TimeSpan.Zero);
+
+        vm.IsRunning.Should().BeFalse();
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(MainViewModel.AutoConnectAttempts));
     }
 }

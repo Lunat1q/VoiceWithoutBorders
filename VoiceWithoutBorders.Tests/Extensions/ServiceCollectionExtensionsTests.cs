@@ -4,6 +4,7 @@ using VoiceWithoutBorders.Extensions;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
+using VoiceWithoutBorders.Infrastructure.Interop;
 
 namespace VoiceWithoutBorders.Tests.Extensions;
 
@@ -18,5 +19,6 @@ public class ServiceCollectionExtensionsTests
         provider.GetRequiredService<IStreamingService>().Should().BeOfType<StreamingService>();
         provider.GetRequiredService<ISettingsStore>().Should().BeOfType<JsonSettingsStore>();
         provider.GetRequiredService<IAudioDeviceService>().Should().BeOfType<AudioDeviceService>();
+        provider.GetRequiredService<IStartupRegistration>().Should().BeOfType<RunKeyStartupRegistration>();
     }
 }

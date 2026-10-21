@@ -6,6 +6,7 @@ using VoiceWithoutBorders.Features.Overlay;
 using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
+using VoiceWithoutBorders.Infrastructure.Interop;
 using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Features.Main;
@@ -17,6 +18,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IStreamingService _streaming;
     private readonly ISettingsStore _store;
     private readonly IAudioDeviceService _devices;
+    private readonly IStartupRegistration _startup;
 
     [ObservableProperty] private string _peerHost = "";
     [ObservableProperty] private int _port;
@@ -42,17 +44,18 @@ public sealed partial class MainViewModel : ObservableObject
         nameof(PeerHost), nameof(Port), nameof(SharedKey), nameof(MaxLatencyMs),
         nameof(MicCapture), nameof(SystemCapture), nameof(MicPlayback), nameof(SystemPlayback),
         nameof(MicEnabled), nameof(SoundEnabled), nameof(ShowOverlay), nameof(OverlayLeft), nameof(OverlayTop),
-        nameof(ToggleMicHotkey), nameof(ToggleSoundHotkey), nameof(StartStopHotkey),
+        nameof(ToggleMicHotkey), nameof(ToggleSoundHotkey), nameof(StartStopHotkey), nameof(AutoConnect),
     ];
 
     // True while settings or device lists are being (re)loaded, so those writes are not saved back.
     private bool _loading = true;
 
-    public MainViewModel(IStreamingService streaming, ISettingsStore store, IAudioDeviceService devices)
+    public MainViewModel(IStreamingService streaming, ISettingsStore store, IAudioDeviceService devices, IStartupRegistration startup)
     {
         _streaming = streaming;
         _store = store;
         _devices = devices;
+        _startup = startup;
 
         var settings = store.Load();
         if (settings.SharedKey.Length == 0)
@@ -66,6 +69,7 @@ public sealed partial class MainViewModel : ObservableObject
         SharedKey = settings.SharedKey;
         MaxLatencyMs = settings.MaxLatencyMs;
         LoadLiveControls(settings);
+        LoadStartup(settings);
         LoadDevices(settings);
         _loading = false;
     }
@@ -124,6 +128,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            IsRunning = false; // a restart that fails leaves everything closed
             Status = $"Could not start: {ex.Message}";
         }
     }
@@ -184,6 +189,7 @@ public sealed partial class MainViewModel : ObservableObject
         ToggleMicHotkey = ToggleMicHotkey,
         ToggleSoundHotkey = ToggleSoundHotkey,
         StartStopHotkey = StartStopHotkey,
+        AutoConnect = AutoConnect,
     };
 
     private static void Fill(ObservableCollection<AudioDevice> target, IEnumerable<AudioDevice> devices)

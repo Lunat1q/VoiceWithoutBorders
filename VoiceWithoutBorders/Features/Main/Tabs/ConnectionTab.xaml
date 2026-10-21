@@ -68,6 +68,14 @@
                     </Grid>
                 </GroupBox>
             </StackPanel>
+
+            <GroupBox Header="Startup">
+                <StackPanel>
+                    <CheckBox Content="Start with _Windows (in the tray)" IsChecked="{Binding StartWithWindows}" />
+                    <CheckBox Margin="0,8,0,0" Content="Then c_onnect by itself with these settings" IsChecked="{Binding AutoConnect}"
+                              IsEnabled="{Binding StartWithWindows}" />
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

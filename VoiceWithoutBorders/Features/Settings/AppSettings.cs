@@ -27,7 +27,7 @@ public sealed record AppSettings
     public string? SystemPlaybackDeviceId { get; init; }
 
     /// <summary>Jitter buffer cap. Lower is snappier, higher survives a busy network.</summary>
-    public int MaxLatencyMs { get; init; } = 120;
+    public int MaxLatencyMs { get; init; } = 200;
 
     /// <summary>Microphone stream on (sent and played). Toggled with a hotkey while streaming.</summary>
     public bool MicEnabled { get; init; } = true;
@@ -49,6 +49,9 @@ public sealed record AppSettings
     public HotkeyBinding? ToggleSoundHotkey { get; init; } = HotkeyBinding.DefaultToggleSound;
 
     public HotkeyBinding? StartStopHotkey { get; init; }
+
+    /// <summary>Start streaming by itself when Windows launches the app at sign-in.</summary>
+    public bool AutoConnect { get; init; }
 
     public IReadOnlyList<string> Validate()
     {

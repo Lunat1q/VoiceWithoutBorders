@@ -52,13 +52,16 @@ The *Stream* tab shows the address the name resolved to and the link health:
 
 If the address is wrong (a computer name resolving to a VPN or virtual adapter), enter the IP address instead of the name.
 
-**Max latency** caps the jitter buffer. Lower values feel snappier; raise it if you hear crackles on Wi‑Fi.
+**Max latency** caps the jitter buffer (default 200 ms). Lower values feel snappier; raise it if you hear crackles on Wi‑Fi.
+
+**Startup** (Connection tab): *Start with Windows* launches the app into the tray at sign-in; *Then connect by itself* also starts streaming with the saved settings, retrying for about a minute while the network comes up.
 
 ## While streaming
 
 The window has four tabs: **Stream** (status, Start/Stop, live toggles), **Connection** (other computer, shared key, latency), **Devices** (what to send, where to play) and **Hotkeys & overlay**.
 
-- **Tray:** minimizing hides the window to the notification area. Double-click the icon to bring it back; right-click for Start/Stop, the toggles below, and Exit.
+- **Tray:** minimizing hides the window to the notification area. Double-click the icon to bring it back; right-click for Start/Stop, the toggles below, and Exit. Launching the app again brings up the running one instead of a second copy.
+- **Sleep and hibernation:** when the other computer answers again after going quiet (or this one wakes up), streaming reopens its devices and looks the other computer up again, so audio resumes without Stop/Start.
 - **Overlay:** a small pill shows each active stream (↑ sent, ↓ received) with bars that follow the audio level. It is click-through and never takes focus. Tick *Unlock to move it* to drag it anywhere (it stays visible while unlocked); untick to lock it there. *Reset position* puts it back at the top centre.
 - **Hotkeys** (work from any app): by default **Ctrl+Alt+M** turns the microphone stream on/off and **Ctrl+Alt+S** the sound stream; *Start/stop streaming* has no default. Change them in *Hotkeys & overlay*: click a box, press the new combination, Backspace removes it. The tab says when a combination is already taken by another app. A stream that is off is neither sent nor played on this computer; the overlay shows it crossed out.
 
@@ -93,8 +96,7 @@ dotnet run --project VoiceWithoutBorders
 
 - Two computers only; no automatic discovery (enter the name or IP).
 - Uncompressed audio. Opus would cut bandwidth by about 20x.
-- Unplugging a device while streaming needs a Stop/Start.
-- No auto-start with Windows yet.
+- Unplugging a device while streaming needs a Stop/Start (unless the link also drops).
 
 ## Tech stack
 
