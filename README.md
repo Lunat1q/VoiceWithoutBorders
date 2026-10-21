@@ -4,6 +4,10 @@ Share a microphone and system sound between two Windows PCs on the same network.
 
 Each computer can **send** its microphone and/or whatever it is playing, and **play** what the other one sends on any output device.
 
+**[Install guide](docs/install.md)** · **[FAQ and troubleshooting](docs/faq.md)**
+
+<img src="docs/screenshots/stream-tab.png" width="420" alt="Stream tab: connected, sending, 6 ms round trip"> <img src="docs/screenshots/overlay.png" alt="Overlay pill showing the microphone and sound streams">
+
 ## Typical setup: one headset, two computers
 
 Headset is plugged into **Desk PC**. You also want to talk and listen on **Laptop**.

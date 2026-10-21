@@ -8,7 +8,7 @@ Share a microphone and system sound between two Windows PCs on your network — 
 3. On each PC enter the other computer's name or IP and the same shared key, pick devices, press **Start** on both.
 4. To use the other PC's microphone as a microphone on this PC, install the free [VB-CABLE](https://vb-audio.com/Cable/) here and choose **CABLE Output** under *Its microphone becomes*.
 
-Full setup guide, a sample one-headset setup and troubleshooting are in the [README](https://github.com/Lunat1q/VoiceWithoutBorders#readme).
+Step-by-step [install guide](https://github.com/Lunat1q/VoiceWithoutBorders/blob/main/docs/install.md), [FAQ and troubleshooting](https://github.com/Lunat1q/VoiceWithoutBorders/blob/main/docs/faq.md), and a sample one-headset setup in the [README](https://github.com/Lunat1q/VoiceWithoutBorders#readme).
 
 ## What's in {{VERSION}}
 
