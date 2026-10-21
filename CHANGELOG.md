@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 — 2026-10-21
 
+- Lower latency and no false "audio is being skipped" warnings: the jitter buffer drops audio that sat unused for a whole second (left behind by late packets or sound card clock drift) instead of letting delay build up to *Max latency*. *Max latency* is now only a ceiling, so 150–200 ms is fine even on a fast LAN.
 - The overlay stays on top of other always-on-top windows (borderless games, video players, the taskbar): it raises itself again every second while shown.
 
 ## 0.2.0 — 2026-10-21
