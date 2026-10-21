@@ -48,6 +48,40 @@ public class LatencyCappedBufferTests
         output.Should().OnlyContain(b => b == 0);
     }
 
+    [Fact]
+    public void Write_AfterLatePacketsPileUp_TrimsBackWithinTwoSeconds()
+    {
+        // Regression: a burst of late packets used to stay queued until the cap, adding delay for good.
+        var buffer = new LatencyCappedBuffer(WireFormat.Format, TimeSpan.FromMilliseconds(200));
+        WriteMilliseconds(buffer, 100);
+
+        PlaySteadily(buffer, seconds: 2); // the window holding the underrun has nothing spare; the next one trims
+
+        buffer.BufferedDuration.Should().BeLessThanOrEqualTo(TimeSpan.FromMilliseconds(20));
+        buffer.Skips.Should().Be(0);
+    }
+
+    [Fact]
+    public void Write_WithOnlyASmallSpare_KeepsIt()
+    {
+        var buffer = new LatencyCappedBuffer(WireFormat.Format, TimeSpan.FromMilliseconds(200));
+        WriteMilliseconds(buffer, 10);
+
+        PlaySteadily(buffer, seconds: 2);
+
+        buffer.BufferedDuration.Should().Be(TimeSpan.FromMilliseconds(10));
+    }
+
+    private static void PlaySteadily(LatencyCappedBuffer buffer, int seconds)
+    {
+        var output = new byte[WireFormat.ChunkBytes];
+        for (var i = 0; i < seconds * 200; i++)
+        {
+            buffer.Write(Chunk);
+            buffer.Read(output);
+        }
+    }
+
     private static void WriteMilliseconds(LatencyCappedBuffer buffer, int milliseconds)
     {
         for (var i = 0; i < milliseconds / 5; i++)

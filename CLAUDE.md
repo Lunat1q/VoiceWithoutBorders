@@ -96,4 +96,4 @@ To re-enable with Azure Artifact Signing (formerly Trusted Signing): signing acc
 - **StreamKind**: `Microphone` or `SystemAudio`. Each machine sends at most one of each and plays each on its own device.
 - **Peer**: the other computer (name, IPv4 or IPv6 address). Exactly one peer per session. The socket is dual-stack; names often resolve to IPv6 only (LLMNR/mDNS), so never filter to IPv4.
 - **Session**: random id per codec instance; sequence numbers per stream kind reject duplicates and late packets.
-- **Max latency**: jitter buffer cap; on overflow the buffer drops to half the cap.
+- **Max latency**: jitter buffer cap; on overflow the buffer drops to half the cap. Audio that stays queued for a whole second (late packets, clock drift) is trimmed to a 15 ms spare without counting as a skip.
