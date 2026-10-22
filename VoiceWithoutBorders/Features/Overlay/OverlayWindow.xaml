@@ -27,7 +27,7 @@
                 </Style.Triggers>
             </Style>
         </Border.Style>
-        <!-- Centred: the window can end up taller than its content, and the row must not hug the top. -->
+        <!-- Centred in case Windows holds the window to its minimum size (136x39 px), taller than the pill. -->
         <StackPanel VerticalAlignment="Center">
             <ItemsControl ItemsSource="{Binding Indicators}">
                 <ItemsControl.ItemsPanel>

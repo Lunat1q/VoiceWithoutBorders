@@ -27,6 +27,7 @@ public partial class OverlayWindow : Window
     private readonly Stopwatch _clock = new();
     private TimeSpan _lastFrame;
     private TimeSpan _lastRaise;
+    private Point? _grab; // where the unlocked overlay was picked up, relative to the window
 
     public OverlayWindow(MainViewModel main)
     {
@@ -36,6 +37,9 @@ public partial class OverlayWindow : Window
         SourceInitialized += (_, _) => ApplyLock();
         SizeChanged += (_, _) => Place();
         MouseLeftButtonDown += OnMouseDown;
+        MouseMove += OnMouseMove;
+        MouseLeftButtonUp += (_, _) => ReleaseMouseCapture();
+        LostMouseCapture += OnDragEnded;
         main.PropertyChanged += OnMainPropertyChanged;
     }
 
@@ -90,11 +94,30 @@ public partial class OverlayWindow : Window
     private void RaiseToTop() =>
         NativeMethods.SetWindowPos(new WindowInteropHelper(this).Handle, NativeMethods.HwndTopmost, 0, 0, 0, 0, NativeMethods.SwpNoSizeMoveActivate);
 
+    // Not DragMove: its system move loop sends WM_GETMINMAXINFO, after which WPF holds the window to the Windows
+    // minimum (136x39 px) for good and the pill stretches past its content.
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (!_main.OverlayUnlocked)
             return;
-        DragMove(); // returns when the button is released
+        _grab = e.GetPosition(this);
+        CaptureMouse();
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_grab is not { } grab)
+            return;
+        var at = e.GetPosition(this);
+        Left += at.X - grab.X;
+        Top += at.Y - grab.Y;
+    }
+
+    private void OnDragEnded(object sender, MouseEventArgs e)
+    {
+        if (_grab is null)
+            return;
+        _grab = null;
         _main.MoveOverlay(Left, Top);
     }
 
