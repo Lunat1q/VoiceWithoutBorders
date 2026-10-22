@@ -70,4 +70,15 @@ public class OverlayViewModelTests
         mic.Level.Should().Be(0);
         overlay.Indicators[1].IsMuted.Should().BeFalse();
     }
+
+    [Theory]
+    [InlineData(PeerConnection.Connected, null)]
+    [InlineData(PeerConnection.Waiting, "Other computer not answering")]
+    [InlineData(PeerConnection.KeyMismatch, "Other computer has a different key")]
+    public void LinkProblem_WarnsUnlessConnected(PeerConnection connection, string? expected)
+    {
+        var overlay = new OverlayViewModel { Connection = connection };
+
+        overlay.LinkProblem.Should().Be(expected);
+    }
 }

@@ -48,7 +48,7 @@ public sealed partial class MainViewModel
             return;
         var stats = _streaming.Stats;
         var link = _link.Update(stats);
-        Connection = link.Connection;
+        Connection = Overlay.Connection = link.Connection;
         if (link.Connection != PeerConnection.Connected)
             _restartWhenConnected |= _wasConnected;
         else if (_restartWhenConnected)
@@ -100,6 +100,7 @@ public sealed partial class MainViewModel
         _lastSkips = 0;
         _skipWarningLeft = 0;
         Connection = PeerConnection.Waiting;
+        Overlay.Connection = PeerConnection.Connected; // no warning until the first sample, nor on the stopped preview
         IsSending = IsReceiving = AudioSkipping = false;
         LatencyText = "Measuring latency…";
         LatencyHealth = LatencyHealth.Unknown;

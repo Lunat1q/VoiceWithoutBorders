@@ -14,6 +14,18 @@ public sealed partial class OverlayViewModel : ObservableObject
     /// <summary>Shows the drag hint and outline while the user positions the overlay.</summary>
     [ObservableProperty] private bool _isUnlocked;
 
+    /// <summary>Link to the other computer; anything but Connected shows a warning under the indicators.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LinkProblem))]
+    private PeerConnection _connection = PeerConnection.Connected;
+
+    public string? LinkProblem => Connection switch
+    {
+        PeerConnection.Waiting => "Other computer not answering",
+        PeerConnection.KeyMismatch => "Other computer has a different key",
+        _ => null,
+    };
+
     public ObservableCollection<StreamIndicator> Indicators { get; } = [];
 
     /// <summary>Rebuilds the indicators for the streams these settings open.</summary>

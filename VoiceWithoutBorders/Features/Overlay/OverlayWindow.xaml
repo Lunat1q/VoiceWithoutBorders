@@ -27,7 +27,8 @@
                 </Style.Triggers>
             </Style>
         </Border.Style>
-        <StackPanel>
+        <!-- Centred: the window can end up taller than its content, and the row must not hug the top. -->
+        <StackPanel VerticalAlignment="Center">
             <ItemsControl ItemsSource="{Binding Indicators}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -57,6 +58,17 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <TextBlock Margin="5,3,5,1" FontSize="10" Foreground="#FFB74D" HorizontalAlignment="Center" Text="{Binding LinkProblem}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding LinkProblem}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
             <TextBlock x:Name="DragHint" Margin="5,3,5,1" FontSize="10" Foreground="#CCFFFFFF" HorizontalAlignment="Center"
                        Text="Drag to move · lock it in Hotkeys &amp; overlay">
                 <TextBlock.Style>

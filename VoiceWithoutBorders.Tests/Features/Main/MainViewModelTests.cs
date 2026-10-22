@@ -426,6 +426,28 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task UpdateLinkStatus_PeerGoesQuiet_OverlayWarns_AndStopClearsIt()
+    {
+        // Regression: the overlay looked fine while the other computer was switched off.
+        var stats = PeerHeard(0.2);
+        _streaming.Setup(s => s.Stats).Returns(() => stats);
+        var vm = Create();
+        await vm.StartCommand.ExecuteAsync(null);
+        vm.Overlay.LinkProblem.Should().BeNull("no warning before the first sample");
+
+        vm.UpdateLinkStatus();
+        vm.Overlay.LinkProblem.Should().BeNull();
+
+        stats = PeerHeard(30);
+        vm.UpdateLinkStatus();
+        vm.Overlay.Connection.Should().Be(PeerConnection.Waiting);
+        vm.Overlay.LinkProblem.Should().NotBeNull();
+
+        vm.StopCommand.Execute(null);
+        vm.Overlay.LinkProblem.Should().BeNull("the stopped preview has no link to judge");
+    }
+
+    [Fact]
     public async Task UpdateLinkStatus_FirstAnswer_DoesNotRestart()
     {
         var stats = new TransportStats(1, 0, 0);
