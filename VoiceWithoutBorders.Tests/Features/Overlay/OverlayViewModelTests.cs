@@ -73,8 +73,8 @@ public class OverlayViewModelTests
 
     [Theory]
     [InlineData(PeerConnection.Connected, null)]
-    [InlineData(PeerConnection.Waiting, "Other computer not answering")]
-    [InlineData(PeerConnection.KeyMismatch, "Other computer has a different key")]
+    [InlineData(PeerConnection.Waiting, "No connection")]
+    [InlineData(PeerConnection.KeyMismatch, "Key mismatch")]
     public void LinkProblem_WarnsUnlessConnected(PeerConnection connection, string? expected)
     {
         var overlay = new OverlayViewModel { Connection = connection };
