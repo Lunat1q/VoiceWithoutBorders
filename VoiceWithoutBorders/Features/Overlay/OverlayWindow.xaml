@@ -17,7 +17,7 @@
         Focusable="False"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight">
-    <Border x:Name="Pill" CornerRadius="14" Padding="10,5" Background="#D91B1E26" BorderBrush="#33FFFFFF" BorderThickness="1">
+    <Border x:Name="Pill" CornerRadius="14" Padding="10,5" BorderThickness="1">
         <Border.Style>
             <Style TargetType="Border">
                 <Style.Triggers>
@@ -28,78 +28,63 @@
             </Style>
         </Border.Style>
         <!-- Centred in case Windows holds the window to its minimum size (136x39 px), taller than the pill. -->
-        <StackPanel VerticalAlignment="Center">
-            <!-- A lost link replaces the indicators with a warning of exactly their size, so the pill never moves. -->
-            <Grid>
-                <ItemsControl x:Name="IndicatorRow" ItemsSource="{Binding Indicators}" HorizontalAlignment="Center">
-                    <ItemsControl.Style>
-                        <Style TargetType="ItemsControl">
-                            <Setter Property="Visibility" Value="Hidden" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding LinkProblem}" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ItemsControl.Style>
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type overlay:StreamIndicator}">
-                            <!-- Fixed cell heights keep the icon, the arrow and the bars on one centre line. -->
-                            <StackPanel x:Name="Root" Orientation="Horizontal" Margin="5,0" Height="20">
-                                <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14" Foreground="White"
-                                           Height="14" LineHeight="14" LineStackingStrategy="BlockLineHeight"
-                                           VerticalAlignment="Center" Text="{Binding Glyph}" />
-                                <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="8" Foreground="{Binding Accent}"
-                                           Height="8" LineHeight="8" LineStackingStrategy="BlockLineHeight"
-                                           VerticalAlignment="Center" Margin="2,0,5,0" Text="{Binding DirectionGlyph}" />
-                                <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar0}" />
-                                <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar1}" />
-                                <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar2}" />
-                                <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar3}" />
-                            </StackPanel>
-                            <DataTemplate.Triggers>
-                                <DataTrigger Binding="{Binding IsMuted}" Value="True">
-                                    <Setter TargetName="Root" Property="Opacity" Value="0.45" />
-                                </DataTrigger>
-                            </DataTemplate.Triggers>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Viewbox Width="{Binding ActualWidth, ElementName=IndicatorRow}" Height="20" StretchDirection="DownOnly">
-                    <Viewbox.Style>
-                        <Style TargetType="Viewbox">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding LinkProblem}" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Viewbox.Style>
-                    <StackPanel Orientation="Horizontal" Margin="5,0">
-                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="13" Foreground="#FFB74D"
-                                   VerticalAlignment="Center" Margin="0,0,6,0" Text="&#xE7BA;" />
-                        <TextBlock FontSize="12" Foreground="#FFB74D" VerticalAlignment="Center" Text="{Binding LinkProblem}" />
-                    </StackPanel>
-                </Viewbox>
-            </Grid>
-            <TextBlock x:Name="DragHint" Margin="5,3,5,1" FontSize="10" Foreground="#CCFFFFFF" HorizontalAlignment="Center"
-                       Text="Drag to move · lock it in Hotkeys &amp; overlay">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Visibility" Value="Collapsed" />
+        <!-- A lost link replaces the indicators with a warning of exactly their size, so the pill never moves. -->
+        <Grid VerticalAlignment="Center">
+            <ItemsControl x:Name="IndicatorRow" ItemsSource="{Binding Indicators}" HorizontalAlignment="Center">
+                <ItemsControl.Style>
+                    <Style TargetType="ItemsControl">
+                        <Setter Property="Visibility" Value="Hidden" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsUnlocked}" Value="True">
+                            <DataTrigger Binding="{Binding LinkProblem}" Value="{x:Null}">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </TextBlock.Style>
-            </TextBlock>
-        </StackPanel>
+                </ItemsControl.Style>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type overlay:StreamIndicator}">
+                        <!-- Fixed cell heights keep the icon, the arrow and the bars on one centre line. -->
+                        <StackPanel x:Name="Root" Orientation="Horizontal" Margin="5,0" Height="20">
+                            <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14" Foreground="White"
+                                       Height="14" LineHeight="14" LineStackingStrategy="BlockLineHeight"
+                                       VerticalAlignment="Center" Text="{Binding Glyph}" />
+                            <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="8" Foreground="{Binding Accent}"
+                                       Height="8" LineHeight="8" LineStackingStrategy="BlockLineHeight"
+                                       VerticalAlignment="Center" Margin="2,0,5,0" Text="{Binding DirectionGlyph}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar0}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar1}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar2}" />
+                            <Rectangle Width="3" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center" Fill="{Binding Accent}" Height="{Binding Bar3}" />
+                        </StackPanel>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.45" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Viewbox Width="{Binding ActualWidth, ElementName=IndicatorRow}" Height="20" StretchDirection="DownOnly">
+                <Viewbox.Style>
+                    <Style TargetType="Viewbox">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding LinkProblem}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Viewbox.Style>
+                <StackPanel Orientation="Horizontal" Margin="5,0">
+                    <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="13" Foreground="#FFB74D"
+                               VerticalAlignment="Center" Margin="0,0,6,0" Text="&#xE7BA;" />
+                    <TextBlock FontSize="12" Foreground="#FFB74D" VerticalAlignment="Center" Text="{Binding LinkProblem}" />
+                </StackPanel>
+            </Viewbox>
+        </Grid>
     </Border>
 </Window>

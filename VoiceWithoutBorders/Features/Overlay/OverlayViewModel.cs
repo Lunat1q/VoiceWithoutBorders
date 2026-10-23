@@ -11,7 +11,7 @@ public sealed partial class OverlayViewModel : ObservableObject
 {
     private double _time;
 
-    /// <summary>Shows the drag hint and outline while the user positions the overlay.</summary>
+    /// <summary>Gives the pill a move cursor while the user positions it.</summary>
     [ObservableProperty] private bool _isUnlocked;
 
     /// <summary>Link to the other computer; anything but Connected shows a warning in place of the indicators.</summary>
