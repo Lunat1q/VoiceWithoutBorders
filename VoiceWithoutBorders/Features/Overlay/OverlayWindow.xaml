@@ -19,10 +19,15 @@
         SizeToContent="WidthAndHeight">
     <Border x:Name="Pill" CornerRadius="14" Padding="10,5" BorderThickness="1">
         <Border.Style>
+            <!-- Brushes are setters, not attributes: a local value would beat the unlocked trigger. -->
             <Style TargetType="Border">
+                <Setter Property="Background" Value="#D91B1E26" />
+                <Setter Property="BorderBrush" Value="#33FFFFFF" />
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IsUnlocked}" Value="True">
                         <Setter Property="Cursor" Value="SizeAll" />
+                        <Setter Property="Background" Value="#D9163A40" />
+                        <Setter Property="BorderBrush" Value="#26C6DA" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
