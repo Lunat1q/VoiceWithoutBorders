@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 — 2026-10-27
+
+- The overlay level bars react much more to quiet audio: they follow a decibel scale, so normal speech fills about half the bar instead of a sliver, and the bars are taller.
+- The overlay shows *No connection* or *Key mismatch* in place of the indicators when the other computer stops answering.
+- The overlay keeps its size while you drag it and when you unlock it.
+
 ## 0.2.1 — 2026-10-21
 
 - Lower latency and no false "audio is being skipped" warnings: the jitter buffer drops audio that sat unused for a whole second (left behind by late packets or sound card clock drift) instead of letting delay build up to *Max latency*. *Max latency* is now only a ceiling, so 150–200 ms is fine even on a fast LAN.
