@@ -37,13 +37,35 @@ public class OverlayViewModelTests
         var loud = mic.Bar1;
 
         loud.Should().BeGreaterThan(StreamIndicator.MinBar + 5);
-        mic.Level.Should().BeApproximately(Math.Sqrt(0.5), 0.001);
+        mic.Level.Should().BeApproximately(StreamIndicator.ToLevel(0.5f), 0.001);
 
         for (var i = 0; i < 60; i++)
             overlay.Tick(new StreamLevels(0, 0, 0, 0), micEnabled: true, soundEnabled: true, Frame);
 
         mic.Level.Should().Be(0);
         mic.Bar1.Should().Be(StreamIndicator.MinBar);
+    }
+
+    [Fact]
+    public void Tick_QuietSpeech_FillsAThirdOfTheBarAtLeast()
+    {
+        var overlay = Configured();
+        var mic = overlay.Indicators[0];
+
+        // Regression: on a square-root scale a -26 dB peak barely moved the bars.
+        overlay.Tick(new StreamLevels(MicSent: 0.05f, 0, 0, 0), micEnabled: true, soundEnabled: true, Frame);
+
+        mic.Bar1.Should().BeGreaterThan(StreamIndicator.MinBar + (StreamIndicator.MaxBar - StreamIndicator.MinBar) / 3);
+    }
+
+    [Theory]
+    [InlineData(0f, 0)]
+    [InlineData(0.002f, 0)]
+    [InlineData(1f, 1)]
+    [InlineData(2f, 1)]
+    public void ToLevel_FlatBelowTheFloor_FullAtFullScale(float peak, double expected)
+    {
+        StreamIndicator.ToLevel(peak).Should().Be(expected);
     }
 
     [Fact]

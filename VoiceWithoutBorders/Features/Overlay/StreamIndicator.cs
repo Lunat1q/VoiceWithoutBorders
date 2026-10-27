@@ -7,7 +7,7 @@ namespace VoiceWithoutBorders.Features.Overlay;
 public sealed partial class StreamIndicator(StreamKind kind, bool sending) : ObservableObject
 {
     public const double MinBar = 3;
-    public const double MaxBar = 16;
+    public const double MaxBar = 18;
 
     // Segoe Fluent Icons / MDL2 Assets code points.
     private const string MicGlyph = "";
@@ -15,7 +15,7 @@ public sealed partial class StreamIndicator(StreamKind kind, bool sending) : Obs
     private const string VolumeGlyph = "";
     private const string MuteGlyph = "";
 
-    private static readonly double[] BarWeights = [0.55, 1.0, 0.8, 0.45];
+    private static readonly double[] BarWeights = [0.75, 1.0, 0.9, 0.65];
 
     public StreamKind Kind { get; } = kind;
 
@@ -44,13 +44,15 @@ public sealed partial class StreamIndicator(StreamKind kind, bool sending) : Obs
 
     private const double FallPerSecond = 2.5;
 
+    /// <summary>Peaks this far below full scale and quieter show flat bars (room noise, dither).</summary>
+    private const double FloorDb = 50;
+
     /// <param name="peak">Loudest sample since the last tick, 0 to 1.</param>
     /// <param name="time">Running clock in seconds, drives the wobble so bars do not move in lockstep.</param>
     public void Update(float peak, bool muted, double elapsedSeconds, double time)
     {
         IsMuted = muted;
-        // Square root lifts quiet speech (peaks around 0.05-0.3) into a visible range.
-        var target = muted ? 0 : Math.Sqrt(Math.Clamp(peak, 0, 1));
+        var target = muted ? 0 : ToLevel(peak);
         Level = Math.Max(target, Level - FallPerSecond * elapsedSeconds);
 
         Bar0 = BarHeight(0, time);
@@ -59,9 +61,16 @@ public sealed partial class StreamIndicator(StreamKind kind, bool sending) : Obs
         Bar3 = BarHeight(3, time);
     }
 
+    /// <summary>
+    /// Maps a peak to 0-1 on a decibel scale, the way ears hear it: quiet speech (peaks around 0.03-0.1, -30 to -20 dB)
+    /// already fills about half the bar instead of a sliver.
+    /// </summary>
+    public static double ToLevel(float peak) =>
+        peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(Math.Min(peak, 1)) + FloorDb) / FloorDb, 0, 1);
+
     private double BarHeight(int index, double time)
     {
-        var wobble = 0.75 + 0.25 * Math.Sin(time * 9 + index * 1.7);
+        var wobble = 0.85 + 0.15 * Math.Sin(time * 9 + index * 1.7);
         return MinBar + (MaxBar - MinBar) * Level * BarWeights[index] * wobble;
     }
 }
