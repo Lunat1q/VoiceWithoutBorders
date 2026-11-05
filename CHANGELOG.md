@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3 — 2026-11-05
+
+- The tray icon's right-click menu no longer opens behind the taskbar, so *Exit* is always clickable.
+- The overlay pill has its dark background and border again (lost in 0.2.2).
+
 ## 0.2.2 — 2026-10-27
 
 - The overlay level bars react much more to quiet audio: they follow a decibel scale, so normal speech fills about half the bar instead of a sliver, and the bars are taller.
