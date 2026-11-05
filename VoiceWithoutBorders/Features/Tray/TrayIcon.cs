@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using VoiceWithoutBorders.Features.Main;
+using VoiceWithoutBorders.Infrastructure.Interop;
 
 namespace VoiceWithoutBorders.Features.Tray;
 
@@ -40,6 +41,9 @@ public sealed class TrayIcon : IDisposable
             overlay.Checked = vm.ShowOverlay;
             unlock.Checked = vm.OverlayUnlocked;
         };
+        // The taskbar is topmost too and, activated by the right-click, can end up above the menu. Re-raise the menu
+        // to the top of the topmost band once it is shown, so every item (Exit included) is clickable.
+        menu.Opened += (_, _) => NativeMethods.SetWindowPos(menu.Handle, NativeMethods.HwndTopmost, 0, 0, 0, 0, NativeMethods.SwpNoSizeMoveActivate);
 
         _icon = new NotifyIcon
         {
