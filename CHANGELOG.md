@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The tray icon shows the link with a coloured dot (green connected, amber waiting, red key mismatch), and Windows notifications report when the link comes up, drops or comes back while the window is not in use.
 - A device that stops while streaming (headset unplugged, device disabled) no longer leaves that stream silent: streaming reopens everything, retrying for about a minute while the device comes back.
 - *Push to talk* hotkey: once set, your microphone is sent only while you hold it.
 - New *Audio* tab, live while streaming: volume of the other computer's microphone and sound as played here (0–200 %), and a noise gate that sends silence while your microphone stays below a threshold.

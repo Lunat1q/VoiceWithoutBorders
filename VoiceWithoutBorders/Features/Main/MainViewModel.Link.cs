@@ -10,6 +10,12 @@ public sealed partial class MainViewModel
     /// <summary>How many one-second samples the skip warning stays up after audio was skipped.</summary>
     private const int SkipWarningSeconds = 10;
 
+    /// <summary>
+    /// One-second samples without the peer before a lost link is announced. Covers the first samples after a restart,
+    /// when the reopened transport has not heard the peer yet.
+    /// </summary>
+    private const int LostNoticeSamples = 3;
+
     private readonly LinkMonitor _link = new();
     private int _lastSkips;
     private int _skipWarningLeft;
@@ -19,6 +25,14 @@ public sealed partial class MainViewModel
     private bool _wasConnected;
     private bool _restartWhenConnected;
     private bool _restarting;
+
+    // What the last notice said, so each change is announced once. Kept across restarts, cleared by Stop.
+    private bool _announcedConnected;
+    private bool _announcedBefore;
+    private int _samplesWithoutPeer;
+
+    /// <summary>Raised when the link comes up, drops or comes back; the tray shows it when the window is not in use.</summary>
+    public event Action<string>? LinkNotice;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ConnectionText))]
@@ -54,6 +68,7 @@ public sealed partial class MainViewModel
         var stats = _streaming.Stats;
         var link = _link.Update(stats);
         Connection = Overlay.Connection = link.Connection;
+        Announce(link.Connection);
         if (link.Connection != PeerConnection.Connected)
             _restartWhenConnected |= _wasConnected;
         else if (_restartWhenConnected)
@@ -96,6 +111,32 @@ public sealed partial class MainViewModel
         {
             _restarting = false;
         }
+    }
+
+    private void Announce(PeerConnection connection)
+    {
+        if (connection == PeerConnection.Connected)
+        {
+            _samplesWithoutPeer = 0;
+            if (_announcedConnected)
+                return;
+            _announcedConnected = true;
+            LinkNotice?.Invoke(_announcedBefore ? $"Connected to {PeerHost} again." : $"Connected to {PeerHost}.");
+            _announcedBefore = true;
+        }
+        else if (_announcedConnected && ++_samplesWithoutPeer == LostNoticeSamples)
+        {
+            _announcedConnected = false;
+            LinkNotice?.Invoke(connection == PeerConnection.KeyMismatch
+                ? $"{PeerHost} answers with a different shared key."
+                : $"Lost the connection to {PeerHost}. Waiting for it to answer again…");
+        }
+    }
+
+    private void ForgetAnnouncements()
+    {
+        _announcedConnected = _announcedBefore = false;
+        _samplesWithoutPeer = 0;
     }
 
     // ponytail: retries on the auto-connect schedule (about a minute), then stops with the reason in Status.

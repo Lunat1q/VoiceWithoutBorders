@@ -147,6 +147,7 @@ public sealed partial class MainViewModel : ObservableObject
         IsRunning = false;
         Status = "Stopped";
         ResetLink();
+        ForgetAnnouncements();
     }
 
     [RelayCommand(CanExecute = nameof(IsIdle))]

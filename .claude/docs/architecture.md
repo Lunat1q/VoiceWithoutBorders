@@ -23,7 +23,7 @@ VoiceWithoutBorders/
 │   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
 │   │                             #   MainViewModel.LiveControls (stream toggles, push to talk, overlay lock/position/look, hotkey bindings),
 │   │                             #   MainViewModel.Audio (peer stream volumes, mic noise gate),
-│   │                             #   MainViewModel.Link (connection state, activity lights, latency, skip warning, restart on reconnect/resume/device failure),
+│   │                             #   MainViewModel.Link (connection state + LinkNotice, activity lights, latency, skip warning, restart on reconnect/resume/device failure),
 │   │                             #   MainViewModel.Startup (start with Windows, auto-connect with retries)
 │   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;
 │   │                             #   ticks on CompositionTarget.Rendering), OverlayViewModel (layout, size, opacity, fade when quiet) + StreamIndicator (pure)
@@ -31,7 +31,7 @@ VoiceWithoutBorders/
 │   │                             #   SharedKeyGenerator
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,
 │   │                             #   per-stream enable and volume, mic noise gate, peak levels for the overlay), LinkMonitor (link health), StreamLatency + LatencyHealth (end-to-end estimate)
-│   ├── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu; the only WinForms use)
+│   ├── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu, link-state dot, notifications; the only WinForms use)
 │   └── Updates/                  # UpdateViewModel (offer on the Stream tab, install, streaming resumes afterwards)
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
