@@ -1,13 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-11-18
 
+- New *Audio* tab, live while streaming: volume of the other computer's microphone and sound as played here (0–200 %), and a noise gate that sends silence while your microphone stays below a threshold.
+- *Push to talk* hotkey: once set, your microphone is sent only while you hold it.
+- New *Overlay* tab (split from *Hotkeys & overlay*) with the overlay's look: indicators in a row or a column, size, background opacity (down to 0 %, icons only) and *Hide when quiet*, which fades the overlay out after 5 seconds without sound.
 - *Find* on the Connection tab looks for the app on the other computers of your network (same port and key) and fills in the IP address, so you no longer need `ipconfig`. While not streaming, the app keeps its UDP port open to answer these searches.
 - The tray icon shows the link with a coloured dot (green connected, amber waiting, red key mismatch), and Windows notifications report when the link comes up, drops or comes back while the window is not in use.
 - A device that stops while streaming (headset unplugged, device disabled) no longer leaves that stream silent: streaming reopens everything, retrying for about a minute while the device comes back.
-- *Push to talk* hotkey: once set, your microphone is sent only while you hold it.
-- New *Audio* tab, live while streaming: volume of the other computer's microphone and sound as played here (0–200 %), and a noise gate that sends silence while your microphone stays below a threshold.
-- New *Overlay* tab (split from *Hotkeys & overlay*) with the overlay's look: indicators in a row or a column, size, background opacity (down to 0 %, icons only) and *Hide when quiet*, which fades the overlay out after 5 seconds without sound.
+- *Start with Windows* now uses a per-user logon task instead of the Run key, so the app starts right at sign-in instead of after Explorer's startup delay (an existing setting moves over the next time the app opens). *Then connect by itself* retries sooner: after 1 s, 2 s, then every 5 s.
 
 ## 0.2.3 — 2026-11-05
 
