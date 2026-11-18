@@ -27,6 +27,10 @@
             <tabs:DevicesTab />
         </TabItem>
 
+        <TabItem Header="Audio">
+            <tabs:AudioTab />
+        </TabItem>
+
         <TabItem Header="Hotkeys">
             <tabs:HotkeysTab />
         </TabItem>

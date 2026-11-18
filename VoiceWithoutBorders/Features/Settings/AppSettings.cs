@@ -35,6 +35,22 @@ public sealed record AppSettings
     /// <summary>System sound stream on (sent and played). Toggled with a hotkey while streaming.</summary>
     public bool SoundEnabled { get; init; } = true;
 
+    /// <summary>Volume of the peer's mic as played here, in percent (100 = as sent, up to <see cref="MaxVolumePercent"/>).</summary>
+    public int PeerMicVolume { get; init; } = 100;
+
+    /// <summary>Volume of the peer's system sound as played here, in percent.</summary>
+    public int PeerSoundVolume { get; init; } = 100;
+
+    /// <summary>Send silence while this computer's mic stays under <see cref="NoiseGateDb"/>.</summary>
+    public bool NoiseGateEnabled { get; init; }
+
+    /// <summary>Noise gate threshold in dB below full scale, <see cref="MinNoiseGateDb"/> to <see cref="MaxNoiseGateDb"/>.</summary>
+    public int NoiseGateDb { get; init; } = -45;
+
+    public const int MaxVolumePercent = 200;
+    public const int MinNoiseGateDb = -70;
+    public const int MaxNoiseGateDb = -20;
+
     /// <summary>Small always-on-top activity indicator while streaming.</summary>
     public bool ShowOverlay { get; init; } = true;
 

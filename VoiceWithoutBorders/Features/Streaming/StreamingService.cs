@@ -23,6 +23,12 @@ public sealed class StreamingService(
     // Indexed by StreamKind. Written by the UI thread, read by capture and receive threads.
     private readonly bool[] _enabled = [true, true];
 
+    // Indexed by StreamKind: gain applied to what the peer sends before it plays here.
+    private readonly float[] _volume = [1, 1];
+
+    // 16-bit peak the mic must reach to be sent as is; 0 = gate off. Read by the mic capture thread.
+    private int _gateThreshold;
+
     // Peak sample per [kind * 2 + direction] since the last ReadLevels.
     private readonly int[] _peaks = new int[4];
 
@@ -31,6 +37,11 @@ public sealed class StreamingService(
     public TransportStats Stats => transport.Stats;
 
     public void SetEnabled(StreamKind kind, bool enabled) => Volatile.Write(ref _enabled[(int)kind], enabled);
+
+    public void SetVolume(StreamKind kind, double gain) => Volatile.Write(ref _volume[(int)kind], (float)gain);
+
+    public void SetNoiseGate(double? thresholdDb) =>
+        Volatile.Write(ref _gateThreshold, thresholdDb is { } db ? WireFormat.PeakFromDb(db) : 0);
 
     public IReadOnlyList<StreamLatency> GetLatency()
     {
@@ -50,6 +61,9 @@ public sealed class StreamingService(
         Stop();
         SetEnabled(StreamKind.Microphone, settings.MicEnabled);
         SetEnabled(StreamKind.SystemAudio, settings.SoundEnabled);
+        SetVolume(StreamKind.Microphone, settings.PeerMicVolume / 100.0);
+        SetVolume(StreamKind.SystemAudio, settings.PeerSoundVolume / 100.0);
+        SetNoiseGate(settings.NoiseGateEnabled ? settings.NoiseGateDb : null);
         try
         {
             var peer = await transport.OpenAsync(settings.PeerHost, settings.Port, settings.SharedKey, cancellationToken);
@@ -109,10 +123,12 @@ public sealed class StreamingService(
             return;
         var capture = endpoints.CreateCapture(deviceId, loopback);
         _opened.Add(capture);
+        var gate = kind == StreamKind.Microphone ? new NoiseGate() : null;
         capture.ChunkReady += chunk =>
         {
             if (!Volatile.Read(ref _enabled[(int)kind]))
                 return;
+            gate?.Process(chunk, Volatile.Read(ref _gateThreshold));
             RecordPeak(kind, Sent, chunk);
             transport.Send(kind, chunk);
         };
@@ -123,6 +139,7 @@ public sealed class StreamingService(
     {
         if (!Volatile.Read(ref _enabled[(int)kind]) || !_players.TryGetValue(kind, out var player))
             return;
+        WireFormat.ApplyGain(pcm, Volatile.Read(ref _volume[(int)kind]));
         RecordPeak(kind, Received, pcm);
         player.Write(pcm);
     }

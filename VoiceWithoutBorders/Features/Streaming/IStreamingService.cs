@@ -24,6 +24,12 @@ public interface IStreamingService
     /// <summary>A disabled stream is neither sent nor played; takes effect immediately.</summary>
     void SetEnabled(StreamKind kind, bool enabled);
 
+    /// <summary>Gain for what the peer sends on this stream, played here (1 = as sent); takes effect immediately.</summary>
+    void SetVolume(StreamKind kind, double gain);
+
+    /// <summary>Mic chunks quieter than this many dB below full scale are sent as silence; null turns the gate off.</summary>
+    void SetNoiseGate(double? thresholdDb);
+
     /// <summary>Returns and resets the peak levels, for activity meters.</summary>
     StreamLevels ReadLevels();
 

@@ -1,0 +1,70 @@
+<UserControl x:Class="VoiceWithoutBorders.Features.Main.Tabs.AudioTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:main="clr-namespace:VoiceWithoutBorders.Features.Main"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=main:MainViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/VoiceWithoutBorders;component/Features/Main/MainStyles.xaml" />
+    </UserControl.Resources>
+
+    <!-- Everything here works while streaming. -->
+    <ScrollViewer Style="{StaticResource TabPage}">
+        <StackPanel>
+            <GroupBox Header="Volume of what the other computer sends">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="56" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Label Content="Its _microphone" Target="{Binding ElementName=MicVolumeSlider}" />
+                    <Slider x:Name="MicVolumeSlider" Grid.Column="1" VerticalAlignment="Center"
+                            Minimum="0" Maximum="200" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding PeerMicVolume}" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource Shortcut}" Text="{Binding PeerMicVolume, StringFormat={}{0} %}" />
+
+                    <Label Grid.Row="1" Content="Its _sound" Target="{Binding ElementName=SoundVolumeSlider}" />
+                    <Slider x:Name="SoundVolumeSlider" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
+                            Minimum="0" Maximum="200" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding PeerSoundVolume}" />
+                    <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource Shortcut}" Text="{Binding PeerSoundVolume, StringFormat={}{0} %}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                               Text="Only changes what plays on this computer. Above 100 % boosts a quiet microphone; the loudest parts may distort." />
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="My microphone">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="56" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <CheckBox Grid.ColumnSpan="3" Content="_Noise gate" IsChecked="{Binding NoiseGateEnabled}" />
+
+                    <Label Grid.Row="1" Content="_Threshold" Target="{Binding ElementName=GateSlider}" IsEnabled="{Binding NoiseGateEnabled}" />
+                    <Slider x:Name="GateSlider" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding NoiseGateEnabled}"
+                            Minimum="-70" Maximum="-20" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding NoiseGateDb}" />
+                    <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource Shortcut}" Text="{Binding NoiseGateDb, StringFormat={}{0} dB}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                               Text="Sends silence while your mic stays below the threshold (keyboard, fan, room noise). Raise it until background noise no longer moves the overlay's mic bars, but your voice still does." />
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

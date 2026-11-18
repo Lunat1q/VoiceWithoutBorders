@@ -38,6 +38,18 @@ public static class WireFormat
         return peak;
     }
 
+    /// <summary>Scales 16-bit samples in place, clipping at full scale. 1 leaves the audio untouched.</summary>
+    public static void ApplyGain(Span<byte> pcm, float gain)
+    {
+        if (gain == 1)
+            return;
+        foreach (ref var sample in MemoryMarshal.Cast<byte, short>(pcm))
+            sample = (short)Math.Clamp(sample * gain, short.MinValue, short.MaxValue);
+    }
+
+    /// <summary>16-bit peak for a level in decibels below full scale (0 dB = 32768).</summary>
+    public static int PeakFromDb(double db) => (int)Math.Round(32768 * Math.Pow(10, db / 20));
+
     /// <summary>WASAPI playback never resamples, so convert when the device runs at another rate.</summary>
     public static IWaveProvider ResampleTo(IWaveProvider source, int sampleRate) =>
         source.WaveFormat.SampleRate == sampleRate

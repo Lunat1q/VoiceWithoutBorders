@@ -67,4 +67,26 @@ public class WireFormatTests
         resampled.WaveFormat.Channels.Should().Be(2);
         total.Should().BeCloseTo(resampled.WaveFormat.AverageBytesPerSecond, (uint)(resampled.WaveFormat.AverageBytesPerSecond / 20));
     }
+
+    [Theory]
+    [InlineData(0.5f, 1000, 500)]
+    [InlineData(2f, -1000, -2000)]
+    [InlineData(2f, 30000, short.MaxValue)]
+    [InlineData(2f, -30000, short.MinValue)]
+    [InlineData(0f, 1234, 0)]
+    public void ApplyGain_ScalesAndClipsSamples(float gain, short sample, short expected)
+    {
+        var pcm = BitConverter.GetBytes(sample);
+
+        WireFormat.ApplyGain(pcm, gain);
+
+        BitConverter.ToInt16(pcm).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(0, 32768)]
+    [InlineData(-6, 16423)]
+    [InlineData(-40, 328)]
+    public void PeakFromDb_ConvertsDecibelsToA16BitPeak(double db, int expected) =>
+        WireFormat.PeakFromDb(db).Should().Be(expected);
 }

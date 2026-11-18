@@ -63,7 +63,10 @@ If the address is wrong (a computer name resolving to a VPN or virtual adapter),
 
 ## While streaming
 
-The window has five tabs: **Stream** (status, Start/Stop, live toggles), **Connection** (other computer, shared key, latency), **Devices** (what to send, where to play), **Hotkeys** and **Overlay**.
+The window has six tabs: **Stream** (status, Start/Stop, live toggles), **Connection** (other computer, shared key, latency), **Devices** (what to send, where to play), **Audio** (volume, noise gate), **Hotkeys** and **Overlay**.
+
+- **Volume** (Audio tab, works while streaming): how loud the other computer's microphone and sound play here, 0–200 %. Above 100 % boosts a quiet microphone.
+- **Noise gate** (Audio tab): sends silence while your microphone stays below the threshold, so keyboard, fan and room noise do not reach the other computer. Raise the threshold until background noise no longer moves the overlay's mic bars.
 
 - **Tray:** minimizing hides the window to the notification area. Double-click the icon to bring it back; right-click for Start/Stop, the toggles below, and Exit. Launching the app again brings up the running one instead of a second copy.
 - **Sleep and hibernation:** when the other computer answers again after going quiet (or this one wakes up), streaming reopens its devices and looks the other computer up again, so audio resumes without Stop/Start.

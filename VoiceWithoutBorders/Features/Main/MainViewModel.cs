@@ -45,6 +45,7 @@ public sealed partial class MainViewModel : ObservableObject
         nameof(PeerHost), nameof(Port), nameof(SharedKey), nameof(MaxLatencyMs),
         nameof(MicCapture), nameof(SystemCapture), nameof(MicPlayback), nameof(SystemPlayback),
         nameof(MicEnabled), nameof(SoundEnabled), nameof(ShowOverlay), nameof(OverlayLeft), nameof(OverlayTop),
+        nameof(PeerMicVolume), nameof(PeerSoundVolume), nameof(NoiseGateEnabled), nameof(NoiseGateDb),
         nameof(OverlayVertical), nameof(OverlayScale), nameof(OverlayOpacity), nameof(OverlayHideWhenQuiet),
         nameof(ToggleMicHotkey), nameof(ToggleSoundHotkey), nameof(StartStopHotkey), nameof(AutoConnect),
     ];
@@ -72,6 +73,7 @@ public sealed partial class MainViewModel : ObservableObject
         SharedKey = settings.SharedKey;
         MaxLatencyMs = settings.MaxLatencyMs;
         LoadLiveControls(settings);
+        LoadAudio(settings);
         LoadStartup(settings);
         LoadDevices(settings);
         _loading = false;
@@ -188,6 +190,10 @@ public sealed partial class MainViewModel : ObservableObject
         SystemPlaybackDeviceId = IdOf(SystemPlayback),
         MicEnabled = MicEnabled,
         SoundEnabled = SoundEnabled,
+        PeerMicVolume = PeerMicVolume,
+        PeerSoundVolume = PeerSoundVolume,
+        NoiseGateEnabled = NoiseGateEnabled,
+        NoiseGateDb = NoiseGateDb,
         ShowOverlay = ShowOverlay,
         OverlayLeft = OverlayLeft,
         OverlayTop = OverlayTop,

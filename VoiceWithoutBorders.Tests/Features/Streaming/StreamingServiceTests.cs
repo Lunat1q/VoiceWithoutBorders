@@ -157,4 +157,35 @@ public class StreamingServiceTests
         _player.Verify(p => p.Dispose());
         _sut.IsRunning.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task ReceivedAudio_PlaysAtTheStreamsVolume_FromSettingsThenLive()
+    {
+        await _sut.StartAsync(Settings with { PeerSoundVolume = 50 });
+        byte[]? played = null;
+        _player.Setup(p => p.Write(It.IsAny<ArraySegment<byte>>())).Callback<ArraySegment<byte>>(s => played = s.ToArray());
+
+        _transport.Raise(t => t.AudioReceived += null, StreamKind.SystemAudio, new ArraySegment<byte>(BitConverter.GetBytes((short)1000)));
+        BitConverter.ToInt16(played).Should().Be(500);
+
+        _sut.SetVolume(StreamKind.SystemAudio, 2);
+        _transport.Raise(t => t.AudioReceived += null, StreamKind.SystemAudio, new ArraySegment<byte>(BitConverter.GetBytes((short)1000)));
+        BitConverter.ToInt16(played).Should().Be(2000);
+    }
+
+    [Fact]
+    public async Task NoiseGate_SilencesQuietMicChunks_OnlyWhenOn()
+    {
+        await _sut.StartAsync(Settings with { NoiseGateEnabled = true, NoiseGateDb = -20 }); // peak 3277
+        byte[]? sent = null;
+        _transport.Setup(t => t.Send(StreamKind.Microphone, It.IsAny<ArraySegment<byte>>())).Callback<StreamKind, ArraySegment<byte>>((_, s) => sent = s.ToArray());
+        var quiet = BitConverter.GetBytes((short)1000);
+
+        _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(quiet.ToArray()));
+        sent.Should().OnlyContain(b => b == 0, "quiet chunks become silence, still sent to keep the far buffer primed");
+
+        _sut.SetNoiseGate(null);
+        _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(quiet.ToArray()));
+        sent.Should().Equal(quiet);
+    }
 }

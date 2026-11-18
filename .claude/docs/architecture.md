@@ -19,9 +19,10 @@ VoiceWithoutBorders/
 │   ├── Hotkeys/                  # HotkeyBinding (record, key-press parsing, display), HotkeyBox (capture control),
 │   │                             #   HotkeyController (re-registers on change, reports conflicts in HotkeyStatus)
 │   ├── Main/                     # MainWindow.xaml(.cs) (tab shell; minimize → tray), MainStyles.xaml (shared styles),
-│   │                             #   Tabs/ StreamTab, ConnectionTab, DevicesTab, HotkeysTab, OverlayTab (one UserControl per tab),
+│   │                             #   Tabs/ StreamTab, ConnectionTab, DevicesTab, AudioTab, HotkeysTab, OverlayTab (one UserControl per tab),
 │   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
 │   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position/look, hotkey bindings),
+│   │                             #   MainViewModel.Audio (peer stream volumes, mic noise gate),
 │   │                             #   MainViewModel.Link (connection state, activity lights, latency, skip warning, restart on reconnect/resume),
 │   │                             #   MainViewModel.Startup (start with Windows, auto-connect with retries)
 │   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;
@@ -29,14 +30,15 @@ VoiceWithoutBorders/
 │   ├── Settings/                 # AppSettings (record + Validate), ISettingsStore, JsonSettingsStore (DPAPI key),
 │   │                             #   SharedKeyGenerator
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,
-│   │                             #   per-stream enable, peak levels for the overlay), LinkMonitor (link health), StreamLatency + LatencyHealth (end-to-end estimate)
+│   │                             #   per-stream enable and volume, mic noise gate, peak levels for the overlay), LinkMonitor (link health), StreamLatency + LatencyHealth (end-to-end estimate)
 │   ├── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu; the only WinForms use)
 │   └── Updates/                  # UpdateViewModel (offer on the Stream tab, install, streaming resumes afterwards)
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
     │                             #   IAudioEndpointFactory/WasapiEndpointFactory, IAudioCapture/WasapiAudioCapture,
     │                             #   IAudioPlayer/WasapiAudioPlayer, LatencyCappedBuffer (jitter buffer),
-    │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking + resampling helpers)
+    │                             #   NoiseGate (silences quiet mic chunks, 300 ms hold),
+    │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking, gain + resampling helpers)
     ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window),
     │                             #   IStartupRegistration/ScheduledTaskStartupRegistration (per-user logon task; migrates the old HKCU Run entry)
     ├── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
