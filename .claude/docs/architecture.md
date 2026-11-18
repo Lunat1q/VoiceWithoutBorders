@@ -24,7 +24,8 @@ VoiceWithoutBorders/
 │   │                             #   MainViewModel.LiveControls (stream toggles, push to talk, overlay lock/position/look, hotkey bindings),
 │   │                             #   MainViewModel.Audio (peer stream volumes, mic noise gate),
 │   │                             #   MainViewModel.Link (connection state + LinkNotice, activity lights, latency, skip warning, restart on reconnect/resume/device failure),
-│   │                             #   MainViewModel.Startup (start with Windows, auto-connect with retries)
+│   │                             #   MainViewModel.Startup (start with Windows, auto-connect with retries),
+│   │                             #   MainViewModel.Discovery (Find, idle listener on/off)
 │   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;
 │   │                             #   ticks on CompositionTarget.Rendering), OverlayViewModel (layout, size, opacity, fade when quiet) + StreamIndicator (pure)
 │   ├── Settings/                 # AppSettings (record + Validate), ISettingsStore, JsonSettingsStore (DPAPI key),
@@ -44,7 +45,9 @@ VoiceWithoutBorders/
     │                             #   IStartupRegistration/ScheduledTaskStartupRegistration (per-user logon task; migrates the old HKCU Run entry)
     ├── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
     │                             #   PacketCodec (framing, AES-GCM, key derivation, replay window), PacketType,
-    │                             #   HeartbeatPayload + RoundTripClock (NTP-style round trip, no clock sync)
+    │                             #   HeartbeatPayload + RoundTripClock (NTP-style round trip, no clock sync),
+    │                             #   ILanDiscovery/LanDiscovery (idle-time Find on the configured port, IPv4 broadcast),
+    │                             #   DiscoveryPayload + DiscoveredPeer
     └── Updates/                  # IUpdateChecker/GitHubUpdateChecker (releases/latest → Setup asset + .sha256),
                                   #   IUpdateInstaller/InnoSetupUpdateInstaller (GitHub hosts only, SHA-256 must match,
                                   #   silent install, app reopens with --resume), UpdateInfo, AppVersion
@@ -94,12 +97,12 @@ also makes Windows Firewall treat the peer's traffic as replies, so a missing in
 | Offset | Size | Field | Notes |
 |-------:|-----:|-------|-------|
 | 0 | 1 | version | `2` (v1 had no heartbeat; mixed versions reject each other) |
-| 1 | 1 | type | `PacketType`: 0 mic, 1 system audio, 2 heartbeat |
+| 1 | 1 | type | `PacketType`: 0 mic, 1 system audio, 2 heartbeat, 3 discover request, 4 discover reply (no version bump: a v2 app only rejects them) |
 | 2 | 4 | session | random per codec, big-endian |
 | 6 | 4 | sequence | per type, big-endian |
 | 10 | 12 | nonce | random |
 | 22 | 16 | tag | AES-GCM tag |
-| 38 | n | ciphertext | PCM, n ≤ 960; heartbeat: 24 bytes `SentAt`, `EchoOf`, `HeldFor` (µs) |
+| 38 | n | ciphertext | PCM, n ≤ 960; heartbeat: 24 bytes `SentAt`, `EchoOf`, `HeldFor` (µs); discovery: 8-byte instance id + UTF-8 computer name (`DiscoveryPayload`) |
 
 Bytes 0–9 are the AES-GCM associated data, so the header is authenticated too.
 
@@ -111,4 +114,5 @@ Bytes 0–9 are the AES-GCM associated data, so the header is authenticated too.
 | Capture (one per active capture, NAudio) | Chunk + encrypt + `SendTo` |
 | Receive loop (thread pool) | Decrypt + write to jitter buffer, stamp peer last-seen |
 | Heartbeat loop (thread pool, `PeriodicTimer`) | One empty packet per second |
+| Discovery receive loop (thread pool, idle only) | Answer authentic *Find* requests, collect replies to this computer's search |
 | Playback (one per active player, NAudio) | Read jitter buffer into the device |

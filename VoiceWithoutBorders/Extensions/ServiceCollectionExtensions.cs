@@ -29,7 +29,9 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IAudioEndpointFactory, WasapiEndpointFactory>();
 
     public static IServiceCollection AddNetworking(this IServiceCollection services) =>
-        services.AddSingleton<IPeerTransport, UdpPeerTransport>();
+        services
+            .AddSingleton<IPeerTransport, UdpPeerTransport>()
+            .AddSingleton<ILanDiscovery, LanDiscovery>();
 
     public static IServiceCollection AddStreaming(this IServiceCollection services) =>
         services.AddSingleton<IStreamingService, StreamingService>();

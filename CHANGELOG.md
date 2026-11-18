@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- *Find* on the Connection tab looks for the app on the other computers of your network (same port and key) and fills in the IP address, so you no longer need `ipconfig`. While not streaming, the app keeps its UDP port open to answer these searches.
 - The tray icon shows the link with a coloured dot (green connected, amber waiting, red key mismatch), and Windows notifications report when the link comes up, drops or comes back while the window is not in use.
 - A device that stops while streaming (headset unplugged, device disabled) no longer leaves that stream silent: streaming reopens everything, retrying for about a minute while the device comes back.
 - *Push to talk* hotkey: once set, your microphone is sent only while you hold it.

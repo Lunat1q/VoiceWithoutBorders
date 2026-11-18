@@ -5,6 +5,7 @@ using VoiceWithoutBorders.Features.Settings;
 using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Infrastructure.Audio;
 using VoiceWithoutBorders.Infrastructure.Interop;
+using VoiceWithoutBorders.Infrastructure.Network;
 using VoiceWithoutBorders.Infrastructure.Updates;
 
 namespace VoiceWithoutBorders.Tests.Extensions;
@@ -23,5 +24,6 @@ public class ServiceCollectionExtensionsTests
         provider.GetRequiredService<IStartupRegistration>().Should().BeOfType<ScheduledTaskStartupRegistration>();
         provider.GetRequiredService<IUpdateChecker>().Should().BeOfType<GitHubUpdateChecker>();
         provider.GetRequiredService<IUpdateInstaller>().Should().BeOfType<InnoSetupUpdateInstaller>();
+        provider.GetRequiredService<ILanDiscovery>().Should().BeOfType<LanDiscovery>();
     }
 }

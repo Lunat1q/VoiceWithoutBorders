@@ -8,6 +8,7 @@ using VoiceWithoutBorders.Features.Streaming;
 using VoiceWithoutBorders.Features.Updates;
 using VoiceWithoutBorders.Infrastructure.Audio;
 using VoiceWithoutBorders.Infrastructure.Interop;
+using VoiceWithoutBorders.Infrastructure.Network;
 using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Features.Main;
@@ -53,9 +54,11 @@ public sealed partial class MainViewModel : ObservableObject
     // True while settings or device lists are being (re)loaded, so those writes are not saved back.
     private bool _loading = true;
 
-    public MainViewModel(IStreamingService streaming, ISettingsStore store, IAudioDeviceService devices, IStartupRegistration startup, UpdateViewModel update)
+    public MainViewModel(IStreamingService streaming, ISettingsStore store, IAudioDeviceService devices, IStartupRegistration startup, UpdateViewModel update,
+        ILanDiscovery discovery)
     {
         Update = update;
+        _discovery = discovery;
         _streaming = streaming;
         _store = store;
         _devices = devices;
@@ -77,6 +80,7 @@ public sealed partial class MainViewModel : ObservableObject
         LoadStartup(settings);
         LoadDevices(settings);
         _loading = false;
+        UpdateDiscovery();
     }
 
     /// <summary>Every edit is saved immediately, so nothing is lost when the app closes without Start.</summary>
@@ -123,6 +127,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         Status = $"Connecting to {settings.PeerHost}…";
+        _discovery.StopListening(); // streaming binds the same port
         try
         {
             var peer = await _streaming.StartAsync(settings);
@@ -137,6 +142,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             IsRunning = false; // a restart that fails leaves everything closed
             Status = $"Could not start: {ex.Message}";
+            UpdateDiscovery();
         }
     }
 

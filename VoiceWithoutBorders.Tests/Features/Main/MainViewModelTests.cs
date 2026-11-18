@@ -27,6 +27,7 @@ public partial class MainViewModelTests
     private readonly Mock<ISettingsStore> _store = new();
     private readonly Mock<IAudioDeviceService> _devices = new();
     private readonly Mock<IStartupRegistration> _startup = new();
+    private readonly Mock<ILanDiscovery> _discovery = new();
 
     public MainViewModelTests()
     {
@@ -47,7 +48,8 @@ public partial class MainViewModelTests
     }
 
     private MainViewModel Create() =>
-        new(_streaming.Object, _store.Object, _devices.Object, _startup.Object, new UpdateViewModel(new Mock<IUpdateChecker>().Object, new Mock<IUpdateInstaller>().Object, new Mock<IStreamingService>().Object));
+        new(_streaming.Object, _store.Object, _devices.Object, _startup.Object, new UpdateViewModel(new Mock<IUpdateChecker>().Object, new Mock<IUpdateInstaller>().Object, new Mock<IStreamingService>().Object),
+            _discovery.Object);
 
     [Fact]
     public void Constructor_LoadsSettingsAndSelectsSavedDevices()

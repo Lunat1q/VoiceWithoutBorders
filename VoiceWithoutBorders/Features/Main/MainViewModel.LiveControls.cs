@@ -63,6 +63,7 @@ public sealed partial class MainViewModel
 
     partial void OnIsRunningChanged(bool value)
     {
+        UpdateDiscovery();
         if (!value && OverlayUnlocked)
             Overlay.Configure(ToSettings()); // keep a preview to drag around
     }

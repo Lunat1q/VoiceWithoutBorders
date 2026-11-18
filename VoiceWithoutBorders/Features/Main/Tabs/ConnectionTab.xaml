@@ -30,23 +30,48 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <Label Content="_Computer name or IP" Target="{Binding ElementName=PeerHostBox}" />
-                        <TextBox x:Name="PeerHostBox" Grid.Column="1" Text="{Binding PeerHost, UpdateSourceTrigger=PropertyChanged}" />
+                        <DockPanel Grid.Column="1">
+                            <Button DockPanel.Dock="Right" Content="_Find" MinWidth="0" Margin="8,4,0,4" Padding="12,0"
+                                    ToolTip="Look for the app on the other computers of this network (same port and key)"
+                                    Command="{Binding FindPeersCommand}" />
+                            <TextBox x:Name="PeerHostBox" Text="{Binding PeerHost, UpdateSourceTrigger=PropertyChanged}" />
+                        </DockPanel>
 
-                        <Label Grid.Row="1" Content="_UDP port" Target="{Binding ElementName=PortBox}" />
-                        <TextBox x:Name="PortBox" Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Port}" />
+                        <!-- Find's outcome; with several answers, one button per computer. -->
+                        <StackPanel Grid.Row="1" Grid.Column="1">
+                            <TextBlock Style="{StaticResource Hint}" Text="{Binding SearchStatus}" />
+                            <ItemsControl ItemsSource="{Binding FoundPeers}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Margin="0,0,8,4" MinWidth="0" Padding="12,2" Content="{Binding}"
+                                                Command="{Binding DataContext.UsePeerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
 
-                        <Label Grid.Row="2" Content="Shared _key" Target="{Binding ElementName=SharedKeyBox}" />
-                        <DockPanel Grid.Row="2" Grid.Column="1">
+                        <Label Grid.Row="2" Content="_UDP port" Target="{Binding ElementName=PortBox}" />
+                        <TextBox x:Name="PortBox" Grid.Row="2" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Port}" />
+
+                        <Label Grid.Row="3" Content="Shared _key" Target="{Binding ElementName=SharedKeyBox}" />
+                        <DockPanel Grid.Row="3" Grid.Column="1">
                             <Button DockPanel.Dock="Right" Content="_New" MinWidth="0" Margin="8,4,0,4" Padding="12,0"
                                     ToolTip="Generate a new random key" Command="{Binding NewSharedKeyCommand}" />
                             <TextBox x:Name="SharedKeyBox" FontFamily="Consolas" Text="{Binding SharedKey, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
 
-                        <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}"
-                                   Text="Use the same port and key (16+ characters) on both computers: type this key on the other one." />
+                        <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Hint}"
+                                   Text="Use the same port and key (16+ characters) on both computers: type this key on the other one, then press Find on either." />
                     </Grid>
                 </GroupBox>
 

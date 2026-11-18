@@ -35,7 +35,7 @@ Open Voice Without Borders on both computers.
 
 ![Connection tab](screenshots/connection-tab.png)
 
-1. **Connection** tab: enter the **other** computer's name or IP address. Use the same UDP port on both (default `15300`).
+1. **Connection** tab: enter the **other** computer's name or IP address, or, once step 2 is done, press **Find** to fill it in. Use the same UDP port on both (default `15300`).
 2. Copy the **shared key** from the first computer and type it on the second. Both must match exactly.
 3. **Devices** tab: pick what to send and where to play what arrives. See the [one-headset example](../README.md#typical-setup-one-headset-two-computers).
 

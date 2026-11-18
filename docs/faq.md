@@ -10,7 +10,7 @@ Nothing has arrived from the other computer yet. Check, in order:
 
 1. The app is running on the other computer and **Start** is pressed there.
 2. Both computers use the same **port** and the same **shared key**.
-3. The *Stream* tab shows the address the name resolved to. If it's wrong (a VPN or virtual adapter, for example), enter the IP address instead of the name. You can find it with `ipconfig` on the other computer.
+3. The *Stream* tab shows the address the name resolved to. If it's wrong (a VPN or virtual adapter, for example), enter the IP address instead of the name. *Find* on the Connection tab fills it in when the app is open on the other computer with the same port and key; otherwise run `ipconfig` there.
 4. Windows Firewall: the network must be **Private**, not *Public* (Settings → Network & internet → your connection). If you dismissed the firewall prompt, allow the app in *Windows Security → Firewall & network protection → Allow an app through firewall*.
 5. Both computers are on the same network. Guest Wi-Fi often isolates devices from each other.
 

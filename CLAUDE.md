@@ -21,6 +21,7 @@ To re-enable with Azure Artifact Signing (formerly Trusted Signing): signing acc
 
 ### Ports
 - UDP `15300` (default, user-configurable). Both peers bind and send to the same port.
+- While idle the port is held by `LanDiscovery` (answers *Find* requests, IPv4 broadcast); it must be released before streaming binds it (`MainViewModel.StartAsync` does).
 
 ## Tech Stack
 

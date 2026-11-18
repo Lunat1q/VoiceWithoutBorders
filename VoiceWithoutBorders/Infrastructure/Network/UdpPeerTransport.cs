@@ -160,6 +160,13 @@ public sealed class UdpPeerTransport(ILogger<UdpPeerTransport> logger) : IPeerTr
                     Interlocked.Increment(ref _rejected);
                     continue;
                 }
+                // Discovery can come from any computer with the key, so it says nothing about the peer.
+                if (type is PacketType.DiscoverRequest or PacketType.DiscoverReply)
+                {
+                    if (DiscoveryPayload.Answer(codec, type, pcm) is { } reply)
+                        udp.Client.SendTo(reply, result.RemoteEndPoint);
+                    continue;
+                }
                 Interlocked.Exchange(ref _lastPeerTick, Environment.TickCount64);
                 if (type == PacketType.Heartbeat)
                 {

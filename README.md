@@ -43,7 +43,7 @@ The same applies to a computer with no sound card at all (a server, a VM): it ha
 1. Download `VoiceWithoutBorders-Setup-<version>.exe` from [Releases](https://github.com/Lunat1q/VoiceWithoutBorders/releases/latest) on both PCs and run it. It installs for your account only (no admin rights, into `%LOCALAPPDATA%\Programs`) and offers new releases inside the app: **Update now** closes it, installs, and reopens it (streaming again if it was). No .NET install needed (64-bit Windows 10/11). It is not code-signed, so SmartScreen may warn the first time: **More info → Run anyway**.
    Prefer no install? `VoiceWithoutBorders-<version>-win-x64.zip` holds the same single exe. It gets the update offer too, which installs the regular version.
 2. Start Voice Without Borders on both PCs.
-3. On each PC enter the **other** computer's name or IP address and the same **UDP port** (default `15300`). The first PC generates a random **shared key**: type that same key on the other PC (or press **New** for a fresh one).
+3. On each PC enter the **other** computer's name or IP address and the same **UDP port** (default `15300`). The first PC generates a random **shared key**: type that same key on the other PC (or press **New** for a fresh one). With the app open on both and the same port and key, **Find** next to the computer name looks for the other PC on your network and fills in its IP address.
 4. Choose the devices, then press **Start** on both.
 5. Allow the app through Windows Firewall when asked. The prompt only allows **private** networks by default: if Windows marks your network as *Public* (Settings → Network & internet → your connection → Network profile type), switch it to *Private*, or incoming audio is blocked.
 
@@ -88,7 +88,8 @@ The window has six tabs: **Stream** (status, Start/Stop, live toggles), **Connec
 - Every packet is encrypted and authenticated with **AES-256-GCM**. The key is derived from the shared key with PBKDF2-SHA256 (210,000 iterations).
 - Packets that fail authentication, duplicates, late packets and reflected copies of your own packets are dropped.
 - The shared key is stored encrypted with Windows DPAPI under your user account (`%AppData%\VoiceWithoutBorders\settings.json`).
-- There is no discovery or handshake. Only packets made with the shared key are played.
+- There is no handshake. Only packets made with the shared key are played.
+- *Find* broadcasts a request on the configured port; only a computer with the same key can read it, and only such a request gets an answer (its computer name). While not streaming the app keeps the port open for these requests, so other computers can find it.
 - Known limitation: someone on your network who records traffic could replay an *earlier* session's audio to you. Use a strong key and keep the port off the internet.
 - Designed for a trusted LAN. Do not forward the port through your router.
 
