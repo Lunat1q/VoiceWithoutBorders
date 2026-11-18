@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 — 2026-11-18
+
+- New *Notifications* tab: turn the tray pop-ups off altogether, or only *Connected*, *Lost the connection* or *Different shared key*.
+
 ## 0.3.1 — 2026-11-18
 
 - The *Connection* and *Overlay* tabs fit the window again without a scroll bar, also while streaming and after *Find* lists several computers. *Max latency* moved into the *Other computer* box, and *Reset position* sits next to *Unlock to move it*.
