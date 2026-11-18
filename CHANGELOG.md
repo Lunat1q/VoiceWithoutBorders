@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The *Connection* and *Overlay* tabs fit the window again without a scroll bar, also while streaming and after *Find* lists several computers. *Max latency* moved into the *Other computer* box, and *Reset position* sits next to *Unlock to move it*.
+
 ## 0.3.0 — 2026-11-18
 
 - New *Audio* tab, live while streaming: volume of the other computer's microphone and sound as played here (0–200 %), and a noise gate that sends silence while your microphone stays below a threshold.

@@ -31,6 +31,8 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <Label Content="_Computer name or IP" Target="{Binding ElementName=PeerHostBox}" />
@@ -43,7 +45,18 @@
 
                         <!-- Find's outcome; with several answers, one button per computer. -->
                         <StackPanel Grid.Row="1" Grid.Column="1">
-                            <TextBlock Style="{StaticResource Hint}" Text="{Binding SearchStatus}" />
+                            <!-- Collapsed until Find runs, so the empty line does not push the tab into scrolling. -->
+                            <TextBlock Text="{Binding SearchStatus}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Hint}">
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                             <ItemsControl ItemsSource="{Binding FoundPeers}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -70,25 +83,24 @@
                             <TextBox x:Name="SharedKeyBox" FontFamily="Consolas" Text="{Binding SharedKey, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
 
-                        <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Hint}"
-                                   Text="Use the same port and key (16+ characters) on both computers: type this key on the other one, then press Find on either." />
-                    </Grid>
-                </GroupBox>
+                        <!-- Gives way to Find's outcome, so its answers fit without scrolling. -->
+                        <TextBlock Grid.Row="4" Grid.Column="1"
+                                   Text="Use the same port and key (16+ characters) on both computers: type this key on the other one, then press Find on either.">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Hint}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SearchStatus}" Value="">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
-                <GroupBox Header="Advanced">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="170" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <Label Content="Max _latency (ms)" Target="{Binding ElementName=LatencyBox}" />
-                        <TextBox x:Name="LatencyBox" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding MaxLatencyMs}" />
-                        <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}"
+                        <Label Grid.Row="5" Content="Max _latency (ms)" Target="{Binding ElementName=LatencyBox}" />
+                        <TextBox x:Name="LatencyBox" Grid.Row="5" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding MaxLatencyMs}" />
+                        <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource Hint}"
                                    Text="Lower feels snappier; raise it if you hear crackles on Wi-Fi." />
                     </Grid>
                 </GroupBox>
