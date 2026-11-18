@@ -23,6 +23,9 @@ public sealed class StreamingService(
     // Indexed by StreamKind. Written by the UI thread, read by capture and receive threads.
     private readonly bool[] _enabled = [true, true];
 
+    // Push to talk: false while its shortcut is not held. Only gates sending this computer's mic.
+    private bool _micOpen = true;
+
     // Indexed by StreamKind: gain applied to what the peer sends before it plays here.
     private readonly float[] _volume = [1, 1];
 
@@ -37,6 +40,8 @@ public sealed class StreamingService(
     public TransportStats Stats => transport.Stats;
 
     public void SetEnabled(StreamKind kind, bool enabled) => Volatile.Write(ref _enabled[(int)kind], enabled);
+
+    public void SetMicOpen(bool open) => Volatile.Write(ref _micOpen, open);
 
     public void SetVolume(StreamKind kind, double gain) => Volatile.Write(ref _volume[(int)kind], (float)gain);
 
@@ -123,10 +128,11 @@ public sealed class StreamingService(
             return;
         var capture = endpoints.CreateCapture(deviceId, loopback);
         _opened.Add(capture);
-        var gate = kind == StreamKind.Microphone ? new NoiseGate() : null;
+        var mic = kind == StreamKind.Microphone;
+        var gate = mic ? new NoiseGate() : null;
         capture.ChunkReady += chunk =>
         {
-            if (!Volatile.Read(ref _enabled[(int)kind]))
+            if (!Volatile.Read(ref _enabled[(int)kind]) || (mic && !Volatile.Read(ref _micOpen)))
                 return;
             gate?.Process(chunk, Volatile.Read(ref _gateThreshold));
             RecordPeak(kind, Sent, chunk);

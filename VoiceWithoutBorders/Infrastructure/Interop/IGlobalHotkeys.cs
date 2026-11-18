@@ -12,5 +12,12 @@ public interface IGlobalHotkeys : IDisposable
     /// <returns>False when another app already owns the combination.</returns>
     bool Register(ModifierKeys modifiers, Key key, Action action);
 
+    /// <summary>
+    /// A shortcut that is held: <paramref name="pressed"/> on press, <paramref name="released"/> once the key is let go
+    /// (also when the shortcut is unregistered while held, so nothing stays stuck on).
+    /// </summary>
+    /// <returns>False when another app already owns the combination.</returns>
+    bool RegisterHold(ModifierKeys modifiers, Key key, Action pressed, Action released);
+
     void UnregisterAll();
 }

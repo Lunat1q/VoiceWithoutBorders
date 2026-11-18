@@ -25,6 +25,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Label Content="M_icrophone on/off" Target="{Binding ElementName=MicHotkeyBox}" />
@@ -36,7 +38,12 @@
                     <Label Grid.Row="2" Content="St_art/stop streaming" Target="{Binding ElementName=StartStopHotkeyBox}" />
                     <hotkeys:HotkeyBox x:Name="StartStopHotkeyBox" Grid.Row="2" Grid.Column="1" Hotkey="{Binding StartStopHotkey}" />
 
-                    <StackPanel Grid.Row="3" Grid.Column="1">
+                    <Label Grid.Row="3" Content="Push to _talk" Target="{Binding ElementName=PushToTalkHotkeyBox}" />
+                    <hotkeys:HotkeyBox x:Name="PushToTalkHotkeyBox" Grid.Row="3" Grid.Column="1" Hotkey="{Binding PushToTalkHotkey}" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Hint}"
+                               Text="Set, your microphone is sent only while you hold it; the overlay shows it muted otherwise. Empty, it is always sent." />
+
+                    <StackPanel Grid.Row="5" Grid.Column="1">
                         <TextBlock Style="{StaticResource Hint}"
                                    Text="Click a box, then press the new combination (with Ctrl, Alt or Win, or a function key). Esc cancels, Backspace removes it." />
                         <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding HotkeyStatus}" />

@@ -21,7 +21,7 @@ VoiceWithoutBorders/
 │   ├── Main/                     # MainWindow.xaml(.cs) (tab shell; minimize → tray), MainStyles.xaml (shared styles),
 │   │                             #   Tabs/ StreamTab, ConnectionTab, DevicesTab, AudioTab, HotkeysTab, OverlayTab (one UserControl per tab),
 │   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
-│   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position/look, hotkey bindings),
+│   │                             #   MainViewModel.LiveControls (stream toggles, push to talk, overlay lock/position/look, hotkey bindings),
 │   │                             #   MainViewModel.Audio (peer stream volumes, mic noise gate),
 │   │                             #   MainViewModel.Link (connection state, activity lights, latency, skip warning, restart on reconnect/resume),
 │   │                             #   MainViewModel.Startup (start with Windows, auto-connect with retries)
@@ -39,7 +39,8 @@ VoiceWithoutBorders/
     │                             #   IAudioPlayer/WasapiAudioPlayer, LatencyCappedBuffer (jitter buffer),
     │                             #   NoiseGate (silences quiet mic chunks, 300 ms hold),
     │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking, gain + resampling helpers)
-    ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window),
+    ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window;
+    │                             #   held shortcuts poll GetAsyncKeyState until released, no keyboard hook),
     │                             #   IStartupRegistration/ScheduledTaskStartupRegistration (per-user logon task; migrates the old HKCU Run entry)
     ├── Network/                  # IPeerTransport/UdpPeerTransport (dual-stack socket, receive loop, stats),
     │                             #   PacketCodec (framing, AES-GCM, key derivation, replay window), PacketType,

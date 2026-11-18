@@ -47,7 +47,7 @@ public sealed partial class MainViewModel : ObservableObject
         nameof(MicEnabled), nameof(SoundEnabled), nameof(ShowOverlay), nameof(OverlayLeft), nameof(OverlayTop),
         nameof(PeerMicVolume), nameof(PeerSoundVolume), nameof(NoiseGateEnabled), nameof(NoiseGateDb),
         nameof(OverlayVertical), nameof(OverlayScale), nameof(OverlayOpacity), nameof(OverlayHideWhenQuiet),
-        nameof(ToggleMicHotkey), nameof(ToggleSoundHotkey), nameof(StartStopHotkey), nameof(AutoConnect),
+        nameof(ToggleMicHotkey), nameof(ToggleSoundHotkey), nameof(StartStopHotkey), nameof(PushToTalkHotkey), nameof(AutoConnect),
     ];
 
     // True while settings or device lists are being (re)loaded, so those writes are not saved back.
@@ -204,6 +204,7 @@ public sealed partial class MainViewModel : ObservableObject
         ToggleMicHotkey = ToggleMicHotkey,
         ToggleSoundHotkey = ToggleSoundHotkey,
         StartStopHotkey = StartStopHotkey,
+        PushToTalkHotkey = PushToTalkHotkey,
         AutoConnect = AutoConnect,
     };
 

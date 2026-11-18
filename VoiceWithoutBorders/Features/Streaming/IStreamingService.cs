@@ -24,6 +24,9 @@ public interface IStreamingService
     /// <summary>A disabled stream is neither sent nor played; takes effect immediately.</summary>
     void SetEnabled(StreamKind kind, bool enabled);
 
+    /// <summary>False holds back this computer's mic (push to talk not held); the peer's mic still plays.</summary>
+    void SetMicOpen(bool open);
+
     /// <summary>Gain for what the peer sends on this stream, played here (1 = as sent); takes effect immediately.</summary>
     void SetVolume(StreamKind kind, double gain);
 

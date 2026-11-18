@@ -66,7 +66,8 @@ public sealed partial class OverlayViewModel : ObservableObject
         Fade = 1;
     }
 
-    public void Tick(StreamLevels levels, bool micEnabled, bool soundEnabled, double elapsedSeconds)
+    /// <param name="micOpen">False while push to talk is set and not held: the sent mic shows as muted.</param>
+    public void Tick(StreamLevels levels, bool micEnabled, bool soundEnabled, double elapsedSeconds, bool micOpen = true)
     {
         _time += elapsedSeconds;
         var active = IsUnlocked || LinkProblem is not null;
@@ -80,8 +81,9 @@ public sealed partial class OverlayViewModel : ObservableObject
                 (true, false) => levels.MicReceived,
                 (false, false) => levels.SoundReceived,
             };
+            var muted = !(mic ? micEnabled : soundEnabled) || (mic && indicator.Sending && !micOpen);
             var wasMuted = indicator.IsMuted;
-            indicator.Update(peak, muted: !(mic ? micEnabled : soundEnabled), elapsedSeconds, _time);
+            indicator.Update(peak, muted, elapsedSeconds, _time);
             active |= indicator.Level > ActiveLevel || indicator.IsMuted != wasMuted;
         }
 

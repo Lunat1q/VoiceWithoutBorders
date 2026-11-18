@@ -191,4 +191,15 @@ public class OverlayViewModelTests
         for (var t = 0.0; t < seconds - 1e-9; t += Frame)
             overlay.Tick(new StreamLevels(0, 0, 0, 0), micEnabled, soundEnabled: true, Frame);
     }
+
+    [Fact]
+    public void Tick_MicClosedByPushToTalk_MutesOnlyTheSentMic()
+    {
+        var overlay = new OverlayViewModel();
+        overlay.Configure(new AppSettings { MicCaptureDeviceId = "mic", MicPlaybackDeviceId = "cable" });
+
+        overlay.Tick(new StreamLevels(0, 0, 0, 0), micEnabled: true, soundEnabled: true, Frame, micOpen: false);
+
+        overlay.Indicators.Select(i => (i.Sending, i.IsMuted)).Should().Equal((true, true), (false, false));
+    }
 }

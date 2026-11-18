@@ -34,6 +34,18 @@ public sealed partial class MainViewModel
     [ObservableProperty] private HotkeyBinding? _toggleSoundHotkey;
     [ObservableProperty] private HotkeyBinding? _startStopHotkey;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MicOpen))]
+    private HotkeyBinding? _pushToTalkHotkey;
+
+    /// <summary>The push-to-talk shortcut is held right now. Set by the hotkey controller.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MicOpen))]
+    private bool _isTalking;
+
+    /// <summary>This computer's mic may be sent: no push to talk, or its shortcut is held.</summary>
+    public bool MicOpen => PushToTalkHotkey is null || IsTalking;
+
     /// <summary>Set by the hotkey controller: which shortcuts work, or why one does not.</summary>
     [ObservableProperty] private string _hotkeyStatus = "";
 
@@ -44,6 +56,10 @@ public sealed partial class MainViewModel
     partial void OnMicEnabledChanged(bool value) => _streaming.SetEnabled(StreamKind.Microphone, value);
 
     partial void OnSoundEnabledChanged(bool value) => _streaming.SetEnabled(StreamKind.SystemAudio, value);
+
+    partial void OnPushToTalkHotkeyChanged(HotkeyBinding? value) => _streaming.SetMicOpen(MicOpen);
+
+    partial void OnIsTalkingChanged(bool value) => _streaming.SetMicOpen(MicOpen);
 
     partial void OnIsRunningChanged(bool value)
     {
@@ -68,7 +84,7 @@ public sealed partial class MainViewModel
 
     /// <summary>Called by the overlay on every animation frame.</summary>
     public void TickOverlay(double elapsedSeconds) =>
-        Overlay.Tick(_streaming.ReadLevels(), MicEnabled, SoundEnabled, elapsedSeconds);
+        Overlay.Tick(_streaming.ReadLevels(), MicEnabled, SoundEnabled, elapsedSeconds, MicOpen);
 
     /// <summary>Called once a drag of the unlocked overlay ends.</summary>
     public void MoveOverlay(double left, double top)
@@ -108,5 +124,6 @@ public sealed partial class MainViewModel
         ToggleMicHotkey = settings.ToggleMicHotkey;
         ToggleSoundHotkey = settings.ToggleSoundHotkey;
         StartStopHotkey = settings.StartStopHotkey;
+        PushToTalkHotkey = settings.PushToTalkHotkey;
     }
 }

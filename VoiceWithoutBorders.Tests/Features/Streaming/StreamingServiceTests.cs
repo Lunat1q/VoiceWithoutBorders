@@ -188,4 +188,23 @@ public class StreamingServiceTests
         _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(quiet.ToArray()));
         sent.Should().Equal(quiet);
     }
+
+    [Fact]
+    public async Task MicClosed_HoldsBackThisMicOnly_PeerMicStillPlays()
+    {
+        _endpoints.Setup(e => e.CreatePlayer("cable", It.IsAny<TimeSpan>())).Returns(_player.Object);
+        await _sut.StartAsync(Settings with { SystemPlaybackDeviceId = null, MicPlaybackDeviceId = "cable" });
+
+        _sut.SetMicOpen(false);
+        _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(HalfScale.ToArray()));
+        _transport.Raise(t => t.AudioReceived += null, StreamKind.Microphone, new ArraySegment<byte>(HalfScale.ToArray()));
+
+        _transport.Verify(t => t.Send(It.IsAny<StreamKind>(), It.IsAny<ArraySegment<byte>>()), Times.Never);
+        _player.Verify(p => p.Write(It.IsAny<ArraySegment<byte>>()), Times.Once);
+        _sut.ReadLevels().MicSent.Should().Be(0, "nothing left this computer");
+
+        _sut.SetMicOpen(true);
+        _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(HalfScale.ToArray()));
+        _transport.Verify(t => t.Send(StreamKind.Microphone, It.IsAny<ArraySegment<byte>>()), Times.Once);
+    }
 }

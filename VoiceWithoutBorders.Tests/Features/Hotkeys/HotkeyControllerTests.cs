@@ -92,4 +92,38 @@ public class HotkeyControllerTests
 
         _registered.Keys.Should().BeEquivalentTo([Key.M]);
     }
+
+    [Fact]
+    public void RegisterAll_PushToTalk_IsHeld_PressOpensTheMicReleaseClosesIt()
+    {
+        (Action Pressed, Action Released)? hold = null;
+        _hotkeys.Setup(h => h.RegisterHold(ModifierKeys.None, Key.F13, It.IsAny<Action>(), It.IsAny<Action>()))
+            .Returns((ModifierKeys _, Key _, Action pressed, Action released) =>
+            {
+                hold = (pressed, released);
+                return true;
+            });
+        _vm.PushToTalkHotkey = new HotkeyBinding(ModifierKeys.None, Key.F13);
+
+        _sut.RegisterAll();
+        _vm.MicOpen.Should().BeFalse("push to talk is set and not held");
+
+        hold!.Value.Pressed();
+        _vm.MicOpen.Should().BeTrue();
+
+        hold.Value.Released();
+        _vm.MicOpen.Should().BeFalse();
+        _registered.Keys.Should().NotContain(Key.F13, "a held shortcut is not a plain press");
+    }
+
+    [Fact]
+    public void RegisterAll_PushToTalkOwnedByAnotherApp_IsReportedByName()
+    {
+        _hotkeys.Setup(h => h.RegisterHold(It.IsAny<ModifierKeys>(), It.IsAny<Key>(), It.IsAny<Action>(), It.IsAny<Action>())).Returns(false);
+        _vm.PushToTalkHotkey = new HotkeyBinding(ModifierKeys.Control, Key.T);
+
+        _sut.RegisterAll();
+
+        _vm.HotkeyStatus.Should().Contain("Push to talk").And.Contain("another app");
+    }
 }

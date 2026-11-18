@@ -81,6 +81,9 @@ public sealed record AppSettings
 
     public HotkeyBinding? StartStopHotkey { get; init; }
 
+    /// <summary>Set: this computer's mic is sent only while the shortcut is held. Null: always sent.</summary>
+    public HotkeyBinding? PushToTalkHotkey { get; init; }
+
     /// <summary>Start streaming by itself when Windows launches the app at sign-in.</summary>
     public bool AutoConnect { get; init; }
 

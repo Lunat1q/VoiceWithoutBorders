@@ -1,13 +1,19 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace VoiceWithoutBorders.Infrastructure.Interop;
 
 public sealed class GlobalHotkeys : IGlobalHotkeys
 {
+    // How often a held shortcut's key is checked; also the most a release can lag behind.
+    private static readonly TimeSpan HoldPollInterval = TimeSpan.FromMilliseconds(15);
+
     private readonly Dictionary<int, Action> _actions = [];
     private HwndSource? _source;
+    private DispatcherTimer? _holdTimer;
+    private Action? _release;
 
     public void Attach(Window window)
     {
@@ -26,8 +32,42 @@ public sealed class GlobalHotkeys : IGlobalHotkeys
         return true;
     }
 
+    /// <summary>
+    /// RegisterHotKey only reports presses, so while held the key itself is polled until it goes up.
+    /// No keyboard hook: nothing watches other keys, and games that dislike hooks are not bothered.
+    /// </summary>
+    public bool RegisterHold(ModifierKeys modifiers, Key key, Action pressed, Action released)
+    {
+        var virtualKey = KeyInterop.VirtualKeyFromKey(key);
+        return Register(modifiers, key, () =>
+        {
+            if (_release is not null)
+                return;
+            _release = released;
+            pressed();
+            // This constructor starts the timer.
+            _holdTimer = new DispatcherTimer(HoldPollInterval, DispatcherPriority.Input, (_, _) => PollHeld(virtualKey), Dispatcher.CurrentDispatcher);
+        });
+    }
+
+    private void PollHeld(int virtualKey)
+    {
+        if ((NativeMethods.GetAsyncKeyState(virtualKey) & 0x8000) == 0)
+            EndHold();
+    }
+
+    private void EndHold()
+    {
+        _holdTimer?.Stop();
+        _holdTimer = null;
+        var release = _release;
+        _release = null;
+        release?.Invoke();
+    }
+
     public void UnregisterAll()
     {
+        EndHold();
         // On shutdown the window may already be destroyed, which releases its hotkeys anyway.
         if (_source is { IsDisposed: false } source)
         {

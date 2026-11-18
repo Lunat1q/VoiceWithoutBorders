@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- *Push to talk* hotkey: once set, your microphone is sent only while you hold it.
 - New *Audio* tab, live while streaming: volume of the other computer's microphone and sound as played here (0–200 %), and a noise gate that sends silence while your microphone stays below a threshold.
 - New *Overlay* tab (split from *Hotkeys & overlay*) with the overlay's look: indicators in a row or a column, size, background opacity (down to 0 %, icons only) and *Hide when quiet*, which fades the overlay out after 5 seconds without sound.
 
