@@ -3,6 +3,7 @@
 ## 0.3.1 — 2026-11-18
 
 - The *Connection* and *Overlay* tabs fit the window again without a scroll bar, also while streaming and after *Find* lists several computers. *Max latency* moved into the *Other computer* box, and *Reset position* sits next to *Unlock to move it*.
+- *Check for updates* button on the *Stream* tab: looks for a new release right away instead of only when the app starts, and brings back an offer dismissed with *Not now*.
 
 ## 0.3.0 — 2026-11-18
 

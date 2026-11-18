@@ -33,7 +33,7 @@ VoiceWithoutBorders/
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,
 │   │                             #   per-stream enable and volume, mic noise gate, peak levels for the overlay), LinkMonitor (link health), StreamLatency + LatencyHealth (end-to-end estimate)
 │   ├── Tray/                     # TrayIcon (WinForms NotifyIcon + context menu, link-state dot, notifications; the only WinForms use)
-│   └── Updates/                  # UpdateViewModel (offer on the Stream tab, install, streaming resumes afterwards)
+│   └── Updates/                  # UpdateViewModel (check at launch or on Check for updates, offer on the Stream tab, install, streaming resumes afterwards)
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
     │                             #   IAudioEndpointFactory/WasapiEndpointFactory, IAudioCapture/WasapiAudioCapture,

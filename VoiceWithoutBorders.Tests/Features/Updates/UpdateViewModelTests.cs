@@ -68,6 +68,41 @@ public class UpdateViewModelTests
         vm.IsOffered.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task CheckNow_NothingNewer_SaysSo()
+    {
+        var vm = Create();
+
+        await vm.CheckNowCommand.ExecuteAsync(null);
+
+        vm.IsOffered.Should().BeFalse();
+        vm.CheckResult.Should().Contain("No newer version");
+    }
+
+    [Fact]
+    public async Task CheckNow_FindsRelease_WithoutRestart()
+    {
+        var vm = Create();
+        await vm.CheckInBackgroundAsync();
+        _checker.Setup(c => c.CheckAsync(It.IsAny<CancellationToken>())).ReturnsAsync(Update);
+
+        await vm.CheckNowCommand.ExecuteAsync(null);
+
+        vm.IsOffered.Should().BeTrue();
+        vm.CheckResult.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CheckNow_BringsBackDismissedOffer()
+    {
+        var vm = await CreateOffered();
+        vm.DismissCommand.Execute(null);
+
+        await vm.CheckNowCommand.ExecuteAsync(null);
+
+        vm.IsOffered.Should().BeTrue();
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

@@ -28,6 +28,9 @@ public sealed partial class UpdateViewModel(IUpdateChecker checker, IUpdateInsta
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _error;
 
+    /// <summary>Answer to a manual check that found nothing; the offer itself answers one that did.</summary>
+    [ObservableProperty] private string? _checkResult;
+
     public bool HasError => Error is not null;
 
     public bool IsOffered => Available is not null && !IsDismissed && !IsInstalling;
@@ -44,8 +47,19 @@ public sealed partial class UpdateViewModel(IUpdateChecker checker, IUpdateInsta
         }
         catch (Exception)
         {
-            // A malformed release is no reason to bother anyone; the next launch checks again.
+            // A malformed release is no reason to bother anyone; the next launch or Check for updates tries again.
         }
+    }
+
+    /// <summary>The button's check: brings back a dismissed offer, and says so when there is nothing newer.</summary>
+    [RelayCommand]
+    private async Task CheckNowAsync()
+    {
+        CheckResult = null;
+        await CheckInBackgroundAsync();
+        IsDismissed = false;
+        // ponytail: the checker returns null for "up to date" and "GitHub unreachable" alike, hence the wording.
+        CheckResult = Available is null ? $"No newer version than {AppVersion.Number} found." : null;
     }
 
     [RelayCommand]
