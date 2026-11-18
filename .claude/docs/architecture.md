@@ -23,7 +23,7 @@ VoiceWithoutBorders/
 │   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
 │   │                             #   MainViewModel.LiveControls (stream toggles, push to talk, overlay lock/position/look, hotkey bindings),
 │   │                             #   MainViewModel.Audio (peer stream volumes, mic noise gate),
-│   │                             #   MainViewModel.Link (connection state, activity lights, latency, skip warning, restart on reconnect/resume),
+│   │                             #   MainViewModel.Link (connection state, activity lights, latency, skip warning, restart on reconnect/resume/device failure),
 │   │                             #   MainViewModel.Startup (start with Windows, auto-connect with retries)
 │   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;
 │   │                             #   ticks on CompositionTarget.Rendering), OverlayViewModel (layout, size, opacity, fade when quiet) + StreamIndicator (pure)
@@ -36,7 +36,7 @@ VoiceWithoutBorders/
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
     │                             #   IAudioEndpointFactory/WasapiEndpointFactory, IAudioCapture/WasapiAudioCapture,
-    │                             #   IAudioPlayer/WasapiAudioPlayer, LatencyCappedBuffer (jitter buffer),
+    │                             #   IAudioPlayer/WasapiAudioPlayer (both IAudioStream: Faulted when the device stops by itself), LatencyCappedBuffer (jitter buffer),
     │                             #   NoiseGate (silences quiet mic chunks, 300 ms hold),
     │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking, gain + resampling helpers)
     ├── Interop/                  # NativeMethods (user32), IGlobalHotkeys/GlobalHotkeys (RegisterHotKey on the main window;

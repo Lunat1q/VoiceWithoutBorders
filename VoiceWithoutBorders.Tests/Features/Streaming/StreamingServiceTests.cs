@@ -207,4 +207,17 @@ public class StreamingServiceTests
         _capture.Raise(c => c.ChunkReady += null, new ArraySegment<byte>(HalfScale.ToArray()));
         _transport.Verify(t => t.Send(StreamKind.Microphone, It.IsAny<ArraySegment<byte>>()), Times.Once);
     }
+
+    [Fact]
+    public async Task DeviceFailed_WhenAnyOpenDeviceStoppedByItself()
+    {
+        await _sut.StartAsync(Settings);
+        _sut.DeviceFailed.Should().BeFalse();
+
+        _player.Setup(p => p.Faulted).Returns(true);
+
+        _sut.DeviceFailed.Should().BeTrue();
+        _sut.Stop();
+        _sut.DeviceFailed.Should().BeFalse("closed devices are forgotten");
+    }
 }

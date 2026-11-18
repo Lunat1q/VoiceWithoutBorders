@@ -15,6 +15,9 @@ public interface IStreamingService
 
     TransportStats Stats { get; }
 
+    /// <summary>A device in use stopped by itself (unplugged, disabled); Start again to reopen everything.</summary>
+    bool DeviceFailed { get; }
+
     /// <summary>Restarts if already running. On failure everything opened so far is closed and the error rethrown.</summary>
     /// <returns>The peer address audio is sent to.</returns>
     Task<IPEndPoint> StartAsync(AppSettings settings, CancellationToken cancellationToken = default);

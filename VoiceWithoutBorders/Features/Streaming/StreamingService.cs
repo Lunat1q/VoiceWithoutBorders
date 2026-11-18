@@ -12,7 +12,7 @@ public sealed class StreamingService(
     IAudioEndpointFactory endpoints,
     ILogger<StreamingService> logger) : IStreamingService, IDisposable
 {
-    private readonly List<IDisposable> _opened = [];
+    private readonly List<IAudioStream> _opened = [];
 
     // Replaced as a whole, never mutated, because the receive thread reads it while the UI thread starts/stops.
     private IReadOnlyDictionary<StreamKind, IAudioPlayer> _players = new Dictionary<StreamKind, IAudioPlayer>();
@@ -38,6 +38,8 @@ public sealed class StreamingService(
     public bool IsRunning { get; private set; }
 
     public TransportStats Stats => transport.Stats;
+
+    public bool DeviceFailed => _opened.Any(stream => stream.Faulted);
 
     public void SetEnabled(StreamKind kind, bool enabled) => Volatile.Write(ref _enabled[(int)kind], enabled);
 

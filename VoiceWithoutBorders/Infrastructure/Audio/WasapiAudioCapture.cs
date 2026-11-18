@@ -12,6 +12,8 @@ public sealed class WasapiAudioCapture : IAudioCapture
     private readonly MMDevice _device;
     private readonly WasapiRecorder _recorder;
     private readonly byte[] _chunk = new byte[WireFormat.ChunkBytes];
+    private volatile bool _disposing;
+    private volatile bool _faulted;
 
     public event Action<ArraySegment<byte>>? ChunkReady;
 
@@ -22,7 +24,10 @@ public sealed class WasapiAudioCapture : IAudioCapture
         var builder = new WasapiRecorderBuilder().WithDevice(device).WithFormat(WireFormat.Format).WithBufferLength(BufferMilliseconds);
         _recorder = (loopback ? builder.WithLoopbackCapture() : builder).Build();
         _recorder.DataAvailable += OnDataAvailable;
+        _recorder.RecordingStopped += (_, _) => _faulted |= !_disposing; // only Dispose stops it on purpose
     }
+
+    public bool Faulted => _faulted;
 
     public void Start() => _recorder.StartRecording();
 
@@ -34,6 +39,7 @@ public sealed class WasapiAudioCapture : IAudioCapture
 
     public void Dispose()
     {
+        _disposing = true;
         _recorder.DataAvailable -= OnDataAvailable;
         _recorder.Dispose();
         _device.Dispose();

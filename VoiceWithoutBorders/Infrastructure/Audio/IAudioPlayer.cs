@@ -6,7 +6,7 @@ namespace VoiceWithoutBorders.Infrastructure.Audio;
 public readonly record struct PlaybackStats(TimeSpan Buffered, TimeSpan DeviceLatency, int Skips);
 
 /// <summary>Plays wire-format PCM on a device.</summary>
-public interface IAudioPlayer : IDisposable
+public interface IAudioPlayer : IAudioStream
 {
     PlaybackStats Stats { get; }
 

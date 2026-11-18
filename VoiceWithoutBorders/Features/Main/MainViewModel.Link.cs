@@ -46,6 +46,11 @@ public sealed partial class MainViewModel
     {
         if (!IsRunning || _restarting)
             return;
+        if (_streaming.DeviceFailed)
+        {
+            _ = ReopenDevicesAsync();
+            return;
+        }
         var stats = _streaming.Stats;
         var link = _link.Update(stats);
         Connection = Overlay.Connection = link.Connection;
@@ -86,6 +91,23 @@ public sealed partial class MainViewModel
         try
         {
             await StartAsync();
+        }
+        finally
+        {
+            _restarting = false;
+        }
+    }
+
+    // ponytail: retries on the auto-connect schedule (about a minute), then stops with the reason in Status.
+    // A device plugged back in later needs Start by hand; watch device arrivals (MMNotificationClient) if that annoys.
+    private async Task ReopenDevicesAsync()
+    {
+        _restarting = true;
+        try
+        {
+            _streaming.Stop();
+            IsRunning = false;
+            await ConnectWithRetriesAsync(AutoConnectRetryDelays);
         }
         finally
         {
