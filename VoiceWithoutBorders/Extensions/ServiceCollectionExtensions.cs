@@ -48,6 +48,6 @@ public static class ServiceCollectionExtensions
             .AddSingleton<OverlayWindow>()
             .AddSingleton<TrayIcon>()
             .AddSingleton<IGlobalHotkeys, GlobalHotkeys>()
-            .AddSingleton<IStartupRegistration, RunKeyStartupRegistration>()
+            .AddSingleton<IStartupRegistration, ScheduledTaskStartupRegistration>()
             .AddSingleton<HotkeyController>();
 }

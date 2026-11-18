@@ -41,7 +41,7 @@ public partial class App : Application
         var services = _host.Services;
         var window = services.GetRequiredService<MainWindow>();
         MainWindow = window;
-        var startedWithWindows = e.Args.Contains(RunKeyStartupRegistration.LaunchArgument);
+        var startedWithWindows = e.Args.Contains(ScheduledTaskStartupRegistration.LaunchArgument);
         if (!startedWithWindows)
             window.Show(); // at sign-in it stays in the tray
 
@@ -53,9 +53,9 @@ public partial class App : Application
         _viewModel = services.GetRequiredService<MainViewModel>();
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
         if (e.Args.Contains(InnoSetupUpdateInstaller.ResumeArgument))
-            _ = _viewModel.ConnectWithRetriesAsync(MainViewModel.AutoConnectRetryDelay);
+            _ = _viewModel.ConnectWithRetriesAsync(MainViewModel.AutoConnectRetryDelays);
         else if (startedWithWindows)
-            _ = _viewModel.OnStartedWithWindowsAsync(MainViewModel.AutoConnectRetryDelay);
+            _ = _viewModel.OnStartedWithWindowsAsync(MainViewModel.AutoConnectRetryDelays);
         _ = services.GetRequiredService<UpdateViewModel>().CheckInBackgroundAsync();
     }
 

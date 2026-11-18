@@ -20,7 +20,7 @@ public class ServiceCollectionExtensionsTests
         provider.GetRequiredService<IStreamingService>().Should().BeOfType<StreamingService>();
         provider.GetRequiredService<ISettingsStore>().Should().BeOfType<JsonSettingsStore>();
         provider.GetRequiredService<IAudioDeviceService>().Should().BeOfType<AudioDeviceService>();
-        provider.GetRequiredService<IStartupRegistration>().Should().BeOfType<RunKeyStartupRegistration>();
+        provider.GetRequiredService<IStartupRegistration>().Should().BeOfType<ScheduledTaskStartupRegistration>();
         provider.GetRequiredService<IUpdateChecker>().Should().BeOfType<GitHubUpdateChecker>();
         provider.GetRequiredService<IUpdateInstaller>().Should().BeOfType<InnoSetupUpdateInstaller>();
     }

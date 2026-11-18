@@ -56,8 +56,12 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
-; "Start with Windows" is written by the app (RunKeyStartupRegistration); only removed here, on uninstall.
+; "Start with Windows" is a scheduled task the app writes (ScheduledTaskStartupRegistration), deleted in [UninstallRun].
+; Up to 0.2.3 it was this Run entry: the app moves it to the task, and uninstall removes any left behind.
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "VoiceWithoutBorders"; Flags: uninsdeletevalue
+
+[UninstallRun]
+Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""VoiceWithoutBorders"" /F"; Flags: runhidden; RunOnceId: "DeleteStartupTask"
 
 [Run]
 ; No skipifsilent: after a silent in-app update the app reopens by itself. launchargs carries --resume when it was

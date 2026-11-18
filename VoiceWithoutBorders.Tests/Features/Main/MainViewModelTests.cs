@@ -544,7 +544,7 @@ public class MainViewModelTests
     {
         var vm = Create();
 
-        await vm.OnStartedWithWindowsAsync(TimeSpan.Zero);
+        await vm.OnStartedWithWindowsAsync(NoDelay);
 
         _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -558,7 +558,7 @@ public class MainViewModelTests
             .ReturnsAsync(new IPEndPoint(IPAddress.Loopback, 15300));
         var vm = Create();
 
-        await vm.OnStartedWithWindowsAsync(TimeSpan.Zero);
+        await vm.OnStartedWithWindowsAsync(NoDelay);
 
         vm.IsRunning.Should().BeTrue();
         _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
@@ -570,7 +570,7 @@ public class MainViewModelTests
         _store.Setup(s => s.Load()).Returns(AppSettingsTests.Valid with { PeerHost = "" });
         var vm = Create();
 
-        await vm.ConnectWithRetriesAsync(TimeSpan.Zero);
+        await vm.ConnectWithRetriesAsync(NoDelay);
 
         vm.Status.Should().Contain("computer's name").And.NotContain("Trying again");
         _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -584,9 +584,30 @@ public class MainViewModelTests
             .ThrowsAsync(new InvalidOperationException("offline"));
         var vm = Create();
 
-        await vm.OnStartedWithWindowsAsync(TimeSpan.Zero);
+        await vm.OnStartedWithWindowsAsync(NoDelay);
 
         vm.IsRunning.Should().BeFalse();
         _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()), Times.Exactly(MainViewModel.AutoConnectAttempts));
+    }
+
+    private static readonly TimeSpan[] NoDelay = [TimeSpan.Zero];
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(2, 2)]
+    [InlineData(3, 5)]
+    [InlineData(13, 5)]
+    public void RetryDelay_StartsQuickThenRepeatsTheLast(int attempt, int expectedSeconds)
+    {
+        MainViewModel.RetryDelay(MainViewModel.AutoConnectRetryDelays, attempt).Should().Be(TimeSpan.FromSeconds(expectedSeconds));
+    }
+
+    [Fact]
+    public void AutoConnectRetries_CoverAboutAMinute()
+    {
+        var total = Enumerable.Range(1, MainViewModel.AutoConnectAttempts - 1)
+            .Sum(attempt => MainViewModel.RetryDelay(MainViewModel.AutoConnectRetryDelays, attempt).TotalSeconds);
+
+        total.Should().BeInRange(50, 70);
     }
 }
