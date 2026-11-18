@@ -17,24 +17,38 @@
         Focusable="False"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight">
-    <Border x:Name="Pill" CornerRadius="14" Padding="10,5" BorderThickness="1">
-        <Border.Style>
-            <!-- Brushes are setters, not attributes: a local value would beat the unlocked trigger. -->
-            <Style TargetType="Border">
-                <Setter Property="Background" Value="#D91B1E26" />
-                <Setter Property="BorderBrush" Value="#33FFFFFF" />
+    <Grid Opacity="{Binding Fade}">
+        <Grid.Style>
+            <Style TargetType="Grid">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IsUnlocked}" Value="True">
                         <Setter Property="Cursor" Value="SizeAll" />
-                        <Setter Property="Background" Value="#D9163A40" />
-                        <Setter Property="BorderBrush" Value="#26C6DA" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
-        </Border.Style>
+        </Grid.Style>
+        <Grid.LayoutTransform>
+            <ScaleTransform ScaleX="{Binding Scale}" ScaleY="{Binding Scale}" />
+        </Grid.LayoutTransform>
+        <!-- Background on its own layer, so its opacity setting leaves the indicators solid. -->
+        <Border x:Name="Pill" CornerRadius="14" BorderThickness="1" Opacity="{Binding BackgroundOpacity}">
+            <Border.Style>
+                <!-- Brushes are setters, not attributes: a local value would beat the unlocked trigger. -->
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="#1B1E26" />
+                    <Setter Property="BorderBrush" Value="#33FFFFFF" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsUnlocked}" Value="True">
+                            <Setter Property="Background" Value="#163A40" />
+                            <Setter Property="BorderBrush" Value="#26C6DA" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+        </Border>
         <!-- Centred in case Windows holds the window to its minimum size (136x39 px), taller than the pill. -->
         <!-- A lost link replaces the indicators with a warning of exactly their size, so the pill never moves. -->
-        <Grid VerticalAlignment="Center">
+        <Grid Margin="11,6" VerticalAlignment="Center">
             <ItemsControl x:Name="IndicatorRow" ItemsSource="{Binding Indicators}" HorizontalAlignment="Center">
                 <ItemsControl.Style>
                     <Style TargetType="ItemsControl">
@@ -48,7 +62,18 @@
                 </ItemsControl.Style>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Orientation" Value="Horizontal" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsVertical}" Value="True">
+                                            <Setter Property="Orientation" Value="Vertical" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                        </StackPanel>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
@@ -70,11 +95,15 @@
                             <DataTrigger Binding="{Binding IsMuted}" Value="True">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.45" />
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding DataContext.IsVertical, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True">
+                                <Setter TargetName="Root" Property="Margin" Value="2,1" />
+                            </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <Viewbox Width="{Binding ActualWidth, ElementName=IndicatorRow}" Height="20" StretchDirection="DownOnly">
+            <Viewbox Width="{Binding ActualWidth, ElementName=IndicatorRow}" Height="{Binding ActualHeight, ElementName=IndicatorRow}"
+                     StretchDirection="DownOnly">
                 <Viewbox.Style>
                     <Style TargetType="Viewbox">
                         <Style.Triggers>
@@ -91,5 +120,5 @@
                 </StackPanel>
             </Viewbox>
         </Grid>
-    </Border>
+    </Grid>
 </Window>

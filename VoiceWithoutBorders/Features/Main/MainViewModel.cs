@@ -45,6 +45,7 @@ public sealed partial class MainViewModel : ObservableObject
         nameof(PeerHost), nameof(Port), nameof(SharedKey), nameof(MaxLatencyMs),
         nameof(MicCapture), nameof(SystemCapture), nameof(MicPlayback), nameof(SystemPlayback),
         nameof(MicEnabled), nameof(SoundEnabled), nameof(ShowOverlay), nameof(OverlayLeft), nameof(OverlayTop),
+        nameof(OverlayVertical), nameof(OverlayScale), nameof(OverlayOpacity), nameof(OverlayHideWhenQuiet),
         nameof(ToggleMicHotkey), nameof(ToggleSoundHotkey), nameof(StartStopHotkey), nameof(AutoConnect),
     ];
 
@@ -190,6 +191,10 @@ public sealed partial class MainViewModel : ObservableObject
         ShowOverlay = ShowOverlay,
         OverlayLeft = OverlayLeft,
         OverlayTop = OverlayTop,
+        OverlayVertical = OverlayVertical,
+        OverlayScale = OverlayScale,
+        OverlayOpacity = OverlayOpacity,
+        OverlayHideWhenQuiet = OverlayHideWhenQuiet,
         ToggleMicHotkey = ToggleMicHotkey,
         ToggleSoundHotkey = ToggleSoundHotkey,
         StartStopHotkey = StartStopHotkey,

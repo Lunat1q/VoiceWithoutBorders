@@ -74,13 +74,13 @@ Yes. Once both computers are awake and the other one answers, streaming resumes 
 
 ### A hotkey doesn't work
 
-Another app may already use that combination. The *Hotkeys & overlay* tab tells you when this happens. Pick a different one.
+Another app may already use that combination. The *Hotkeys* tab tells you when this happens. Pick a different one.
 
-![Hotkeys & overlay tab](screenshots/hotkeys-tab.png)
+![Hotkeys tab](screenshots/hotkeys-tab.png)
 
 ### How do I move the overlay?
 
-Tick *Unlock to move it*, drag the overlay, then untick. *Reset position* puts it back at the top centre.
+On the *Overlay* tab, tick *Unlock to move it*, drag the overlay, then untick. *Reset position* puts it back at the top centre.
 
 ![Overlay](screenshots/overlay.png)
 

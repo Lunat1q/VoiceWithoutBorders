@@ -4,7 +4,7 @@ using VoiceWithoutBorders.Infrastructure.Updates;
 
 namespace VoiceWithoutBorders.Features.Main;
 
-/// <summary>Shell for the four tabs (Features/Main/Tabs); minimizing hides it to the tray.</summary>
+/// <summary>Shell for the tabs (Features/Main/Tabs); minimizing hides it to the tray.</summary>
 public partial class MainWindow : Window
 {
     public MainWindow(MainViewModel viewModel)

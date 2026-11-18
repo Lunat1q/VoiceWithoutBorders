@@ -43,16 +43,6 @@
                     </StackPanel>
                 </Grid>
             </GroupBox>
-
-            <GroupBox Header="Overlay">
-                <StackPanel>
-                    <CheckBox Content="Show overlay _while streaming" IsChecked="{Binding ShowOverlay}" />
-                    <CheckBox Content="_Unlock to move it" IsChecked="{Binding OverlayUnlocked}" />
-                    <TextBlock Style="{StaticResource Hint}"
-                               Text="While unlocked the overlay stays visible so you can drag it anywhere. Lock it again to make it click-through; the spot is remembered." />
-                    <Button Margin="0,8,0,0" HorizontalAlignment="Left" Content="R_eset position" Command="{Binding ResetOverlayPositionCommand}" />
-                </StackPanel>
-            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

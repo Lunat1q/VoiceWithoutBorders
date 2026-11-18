@@ -103,4 +103,92 @@ public class OverlayViewModelTests
 
         overlay.LinkProblem.Should().Be(expected);
     }
+
+    [Fact]
+    public void BackgroundOpacity_SolidWhileUnlocked_SoAnInvisiblePillCanBeFound()
+    {
+        var overlay = new OverlayViewModel { Opacity = 0 };
+        overlay.BackgroundOpacity.Should().Be(0);
+
+        overlay.IsUnlocked = true;
+
+        overlay.BackgroundOpacity.Should().Be(1);
+    }
+
+    [Fact]
+    public void Tick_HideWhenQuietOff_NeverFades()
+    {
+        var overlay = Configured();
+
+        TickSilence(overlay, seconds: 30);
+
+        overlay.Fade.Should().Be(1);
+    }
+
+    [Fact]
+    public void Tick_HideWhenQuiet_FadesOutAfterQuietSeconds_AndSoundBringsItBack()
+    {
+        var overlay = Configured();
+        overlay.HideWhenQuiet = true;
+
+        TickSilence(overlay, OverlayViewModel.QuietSeconds - 0.5);
+        overlay.Fade.Should().Be(1, "not quiet for long enough yet");
+
+        TickSilence(overlay, 0.5 + OverlayViewModel.FadeSeconds / 2);
+        overlay.Fade.Should().BeInRange(0.3, 0.7, "half way through the fade");
+
+        TickSilence(overlay, OverlayViewModel.FadeSeconds);
+        overlay.Fade.Should().Be(0);
+
+        overlay.Tick(new StreamLevels(MicSent: 0.5f, 0, 0, 0), true, true, Frame);
+        overlay.Fade.Should().Be(1);
+    }
+
+    [Fact]
+    public void Tick_HideWhenQuiet_RoomNoiseDoesNotKeepItVisible()
+    {
+        var overlay = Configured();
+        overlay.HideWhenQuiet = true;
+
+        for (var i = 0; i < 60 * 7; i++)
+            overlay.Tick(new StreamLevels(MicSent: 0.005f, 0, 0, 0), true, true, Frame); // about -46 dB
+
+        overlay.Fade.Should().Be(0);
+    }
+
+    [Fact]
+    public void Tick_HideWhenQuiet_MuteChangeAndLostLinkShowIt()
+    {
+        var overlay = Configured();
+        overlay.HideWhenQuiet = true;
+        TickSilence(overlay, 10);
+
+        overlay.Tick(new StreamLevels(0, 0, 0, 0), micEnabled: false, soundEnabled: true, Frame);
+        overlay.Fade.Should().Be(1, "the user just toggled the mic and wants to see it");
+
+        TickSilence(overlay, 10, micEnabled: false);
+        overlay.Fade.Should().Be(0, "staying muted is not news");
+
+        overlay.Connection = PeerConnection.Waiting;
+        TickSilence(overlay, 10, micEnabled: false);
+        overlay.Fade.Should().Be(1, "a lost link stays visible");
+    }
+
+    [Fact]
+    public void Configure_ShowsAFadedPillAgain()
+    {
+        var overlay = Configured();
+        overlay.HideWhenQuiet = true;
+        TickSilence(overlay, 10);
+
+        overlay.Configure(new AppSettings { MicCaptureDeviceId = "mic" });
+
+        overlay.Fade.Should().Be(1);
+    }
+
+    private static void TickSilence(OverlayViewModel overlay, double seconds, bool micEnabled = true)
+    {
+        for (var t = 0.0; t < seconds - 1e-9; t += Frame)
+            overlay.Tick(new StreamLevels(0, 0, 0, 0), micEnabled, soundEnabled: true, Frame);
+    }
 }

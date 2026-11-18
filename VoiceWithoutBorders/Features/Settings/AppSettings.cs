@@ -43,6 +43,21 @@ public sealed record AppSettings
 
     public double? OverlayTop { get; init; }
 
+    /// <summary>Indicators stacked in a column instead of side by side.</summary>
+    public bool OverlayVertical { get; init; }
+
+    /// <summary>Overlay size, 1 = normal. Clamped to <see cref="MinOverlayScale"/>-<see cref="MaxOverlayScale"/> on load.</summary>
+    public double OverlayScale { get; init; } = 1;
+
+    /// <summary>Opacity of the pill's background, 0 (icons only) to 1. The indicators stay fully opaque.</summary>
+    public double OverlayOpacity { get; init; } = 0.85;
+
+    /// <summary>Fade the overlay out while nothing is heard, back in on sound, a mute change or a lost link.</summary>
+    public bool OverlayHideWhenQuiet { get; init; }
+
+    public const double MinOverlayScale = 0.75;
+    public const double MaxOverlayScale = 2;
+
     /// <summary>Global shortcuts; null means none.</summary>
     public HotkeyBinding? ToggleMicHotkey { get; init; } = HotkeyBinding.DefaultToggleMic;
 

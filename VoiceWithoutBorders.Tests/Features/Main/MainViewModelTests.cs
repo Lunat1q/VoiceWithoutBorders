@@ -15,7 +15,7 @@ using VoiceWithoutBorders.Models;
 
 namespace VoiceWithoutBorders.Tests.Features.Main;
 
-public class MainViewModelTests
+public partial class MainViewModelTests
 {
     private static readonly AudioDevice Mic = new("mic", "USB Microphone");
     private static readonly AudioDevice Headset = new("headset", "Headset");

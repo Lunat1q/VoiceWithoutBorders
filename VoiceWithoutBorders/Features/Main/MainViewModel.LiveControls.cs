@@ -25,6 +25,11 @@ public sealed partial class MainViewModel
     [ObservableProperty] private double? _overlayLeft;
     [ObservableProperty] private double? _overlayTop;
 
+    [ObservableProperty] private bool _overlayVertical;
+    [ObservableProperty] private double _overlayScale = 1;
+    [ObservableProperty] private double _overlayOpacity = 0.85;
+    [ObservableProperty] private bool _overlayHideWhenQuiet;
+
     [ObservableProperty] private HotkeyBinding? _toggleMicHotkey;
     [ObservableProperty] private HotkeyBinding? _toggleSoundHotkey;
     [ObservableProperty] private HotkeyBinding? _startStopHotkey;
@@ -52,6 +57,14 @@ public sealed partial class MainViewModel
         if (value && !IsRunning)
             Overlay.Configure(ToSettings());
     }
+
+    partial void OnOverlayVerticalChanged(bool value) => Overlay.IsVertical = value;
+
+    partial void OnOverlayScaleChanged(double value) => Overlay.Scale = value;
+
+    partial void OnOverlayOpacityChanged(double value) => Overlay.Opacity = value;
+
+    partial void OnOverlayHideWhenQuietChanged(bool value) => Overlay.HideWhenQuiet = value;
 
     /// <summary>Called by the overlay on every animation frame.</summary>
     public void TickOverlay(double elapsedSeconds) =>
@@ -87,6 +100,11 @@ public sealed partial class MainViewModel
         ShowOverlay = settings.ShowOverlay;
         OverlayLeft = settings.OverlayLeft;
         OverlayTop = settings.OverlayTop;
+        OverlayVertical = settings.OverlayVertical;
+        // Clamped, not rejected: a hand-edited settings file must not keep streaming from starting.
+        OverlayScale = Math.Clamp(settings.OverlayScale, AppSettings.MinOverlayScale, AppSettings.MaxOverlayScale);
+        OverlayOpacity = Math.Clamp(settings.OverlayOpacity, 0, 1);
+        OverlayHideWhenQuiet = settings.OverlayHideWhenQuiet;
         ToggleMicHotkey = settings.ToggleMicHotkey;
         ToggleSoundHotkey = settings.ToggleSoundHotkey;
         StartStopHotkey = settings.StartStopHotkey;

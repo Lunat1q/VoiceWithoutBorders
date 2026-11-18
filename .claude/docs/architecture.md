@@ -19,13 +19,13 @@ VoiceWithoutBorders/
 │   ├── Hotkeys/                  # HotkeyBinding (record, key-press parsing, display), HotkeyBox (capture control),
 │   │                             #   HotkeyController (re-registers on change, reports conflicts in HotkeyStatus)
 │   ├── Main/                     # MainWindow.xaml(.cs) (tab shell; minimize → tray), MainStyles.xaml (shared styles),
-│   │                             #   Tabs/ StreamTab, ConnectionTab, DevicesTab, HotkeysTab (one UserControl per tab),
+│   │                             #   Tabs/ StreamTab, ConnectionTab, DevicesTab, HotkeysTab, OverlayTab (one UserControl per tab),
 │   │                             #   MainViewModel (commands, device pickers, autosave, status/stats) +
-│   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position, hotkey bindings),
+│   │                             #   MainViewModel.LiveControls (stream toggles, overlay lock/position/look, hotkey bindings),
 │   │                             #   MainViewModel.Link (connection state, activity lights, latency, skip warning, restart on reconnect/resume),
 │   │                             #   MainViewModel.Startup (start with Windows, auto-connect with retries)
 │   ├── Overlay/                  # OverlayWindow (topmost pill; click-through when locked, draggable when unlocked;
-│   │                             #   ticks on CompositionTarget.Rendering), OverlayViewModel + StreamIndicator (pure)
+│   │                             #   ticks on CompositionTarget.Rendering), OverlayViewModel (layout, size, opacity, fade when quiet) + StreamIndicator (pure)
 │   ├── Settings/                 # AppSettings (record + Validate), ISettingsStore, JsonSettingsStore (DPAPI key),
 │   │                             #   SharedKeyGenerator
 │   ├── Streaming/                # IStreamingService, StreamingService (wires captures/players to the transport,

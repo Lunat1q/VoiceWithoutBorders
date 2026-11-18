@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New *Overlay* tab (split from *Hotkeys & overlay*) with the overlay's look: indicators in a row or a column, size, background opacity (down to 0 %, icons only) and *Hide when quiet*, which fades the overlay out after 5 seconds without sound.
+
 ## 0.2.3 — 2026-11-05
 
 - The tray icon's right-click menu no longer opens behind the taskbar, so *Exit* is always clickable.

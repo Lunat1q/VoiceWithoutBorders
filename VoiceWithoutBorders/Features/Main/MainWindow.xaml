@@ -27,8 +27,12 @@
             <tabs:DevicesTab />
         </TabItem>
 
-        <TabItem Header="Hotkeys &amp; overlay">
+        <TabItem Header="Hotkeys">
             <tabs:HotkeysTab />
+        </TabItem>
+
+        <TabItem Header="Overlay">
+            <tabs:OverlayTab />
         </TabItem>
     </TabControl>
 </Window>
