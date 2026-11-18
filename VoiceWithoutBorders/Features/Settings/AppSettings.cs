@@ -87,6 +87,18 @@ public sealed record AppSettings
     /// <summary>Start streaming by itself when Windows launches the app at sign-in.</summary>
     public bool AutoConnect { get; init; }
 
+    /// <summary>Tray pop-ups about the link. Off silences all of them, whatever the ones below say.</summary>
+    public bool NotificationsEnabled { get; init; } = true;
+
+    /// <summary>"Connected to …" and "Connected to … again."</summary>
+    public bool NotifyConnected { get; init; } = true;
+
+    /// <summary>"Lost the connection to …"</summary>
+    public bool NotifyLost { get; init; } = true;
+
+    /// <summary>"… answers with a different shared key."</summary>
+    public bool NotifyKeyMismatch { get; init; } = true;
+
     public IReadOnlyList<string> Validate()
     {
         var errors = new List<string>();

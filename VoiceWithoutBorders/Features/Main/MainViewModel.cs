@@ -49,6 +49,7 @@ public sealed partial class MainViewModel : ObservableObject
         nameof(PeerMicVolume), nameof(PeerSoundVolume), nameof(NoiseGateEnabled), nameof(NoiseGateDb),
         nameof(OverlayVertical), nameof(OverlayScale), nameof(OverlayOpacity), nameof(OverlayHideWhenQuiet),
         nameof(ToggleMicHotkey), nameof(ToggleSoundHotkey), nameof(StartStopHotkey), nameof(PushToTalkHotkey), nameof(AutoConnect),
+        nameof(NotificationsEnabled), nameof(NotifyConnected), nameof(NotifyLost), nameof(NotifyKeyMismatch),
     ];
 
     // True while settings or device lists are being (re)loaded, so those writes are not saved back.
@@ -78,6 +79,7 @@ public sealed partial class MainViewModel : ObservableObject
         LoadLiveControls(settings);
         LoadAudio(settings);
         LoadStartup(settings);
+        LoadNotifications(settings);
         LoadDevices(settings);
         _loading = false;
         UpdateDiscovery();
@@ -213,6 +215,10 @@ public sealed partial class MainViewModel : ObservableObject
         StartStopHotkey = StartStopHotkey,
         PushToTalkHotkey = PushToTalkHotkey,
         AutoConnect = AutoConnect,
+        NotificationsEnabled = NotificationsEnabled,
+        NotifyConnected = NotifyConnected,
+        NotifyLost = NotifyLost,
+        NotifyKeyMismatch = NotifyKeyMismatch,
     };
 
     private static void Fill(ObservableCollection<AudioDevice> target, IEnumerable<AudioDevice> devices)

@@ -121,15 +121,16 @@ public sealed partial class MainViewModel
             if (_announcedConnected)
                 return;
             _announcedConnected = true;
-            LinkNotice?.Invoke(_announcedBefore ? $"Connected to {PeerHost} again." : $"Connected to {PeerHost}.");
+            Notify(NotifyConnected, _announcedBefore ? $"Connected to {PeerHost} again." : $"Connected to {PeerHost}.");
             _announcedBefore = true;
         }
         else if (_announcedConnected && ++_samplesWithoutPeer == LostNoticeSamples)
         {
             _announcedConnected = false;
-            LinkNotice?.Invoke(connection == PeerConnection.KeyMismatch
-                ? $"{PeerHost} answers with a different shared key."
-                : $"Lost the connection to {PeerHost}. Waiting for it to answer again…");
+            if (connection == PeerConnection.KeyMismatch)
+                Notify(NotifyKeyMismatch, $"{PeerHost} answers with a different shared key.");
+            else
+                Notify(NotifyLost, $"Lost the connection to {PeerHost}. Waiting for it to answer again…");
         }
     }
 

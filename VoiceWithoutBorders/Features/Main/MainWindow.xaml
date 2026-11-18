@@ -38,5 +38,9 @@
         <TabItem Header="Overlay">
             <tabs:OverlayTab />
         </TabItem>
+
+        <TabItem Header="Notifications">
+            <tabs:NotificationsTab />
+        </TabItem>
     </TabControl>
 </Window>
