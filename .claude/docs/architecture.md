@@ -37,7 +37,7 @@ VoiceWithoutBorders/
 │   └── Updates/                  # UpdateViewModel (check at launch or on Check for updates, offer on the Stream tab, install, streaming resumes afterwards)
 └── Infrastructure/
     ├── Audio/                    # AudioDevice, IAudioDeviceService/AudioDeviceService (enumeration),
-    │                             #   IAudioEndpointFactory/WasapiEndpointFactory, IAudioCapture/WasapiAudioCapture,
+    │                             #   IAudioEndpointFactory/WasapiEndpointFactory (id lookup, falls back to enumeration on "not found"), IAudioCapture/WasapiAudioCapture,
     │                             #   IAudioPlayer/WasapiAudioPlayer (both IAudioStream: Faulted when the device stops by itself), LatencyCappedBuffer (jitter buffer),
     │                             #   NoiseGate (silences quiet mic chunks, 300 ms hold),
     │                             #   WireFormat (48k/16/2, 5 ms chunks, chunking, gain + resampling helpers)
