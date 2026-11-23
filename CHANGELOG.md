@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3 — 2026-11-23
+
+- Streaming comes back by itself after the computer wakes from sleep. Devices are often still resetting at that moment ("The audio device has been disconnected or the audio hardware has been reconfigured"); the app now retries for about a minute instead of stopping.
+- Audio devices that are re-created after sign-in (for example by SteelSeries Sonar) open again instead of failing with "Core Audio error 0x80070490" until the app restarts.
+
 ## 0.3.2 — 2026-11-18
 
 - New *Notifications* tab: turn the tray pop-ups off altogether, or only *Connected*, *Lost the connection* or *Different shared key*.
