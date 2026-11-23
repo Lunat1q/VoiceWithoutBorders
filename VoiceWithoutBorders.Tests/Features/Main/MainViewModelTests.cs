@@ -479,11 +479,31 @@ public partial class MainViewModelTests
     }
 
     [Fact]
-    public async Task Reconnect_RestartFails_StopsWithReason()
+    public async Task OnSystemResumed_DeviceStillResetting_RetriesAndKeepsStreaming()
+    {
+        _streaming.Setup(s => s.Stats).Returns(PeerHeard(0.2));
+        var vm = Create();
+        vm.RestartRetryDelays = [TimeSpan.Zero];
+        await vm.StartCommand.ExecuteAsync(null);
+        vm.UpdateLinkStatus();
+        _streaming.SetupSequence(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("The audio device has been disconnected"))
+            .ReturnsAsync(new IPEndPoint(IPAddress.Loopback, 15300));
+
+        vm.OnSystemResumed();
+        vm.UpdateLinkStatus();
+
+        vm.IsRunning.Should().BeTrue();
+        vm.Status.Should().StartWith("Streaming with");
+    }
+
+    [Fact]
+    public async Task Reconnect_RestartKeepsFailing_StopsWithReasonAfterRetries()
     {
         var stats = PeerHeard(0.2);
         _streaming.Setup(s => s.Stats).Returns(() => stats);
         var vm = Create();
+        vm.RestartRetryDelays = [TimeSpan.Zero];
         await vm.StartCommand.ExecuteAsync(null);
         vm.UpdateLinkStatus();
         _streaming.Setup(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()))
@@ -494,6 +514,8 @@ public partial class MainViewModelTests
 
         vm.IsRunning.Should().BeFalse();
         vm.Status.Should().Contain("Headset is gone");
+        _streaming.Verify(s => s.StartAsync(It.IsAny<AppSettings>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(1 + MainViewModel.AutoConnectAttempts));
     }
 
     [Fact]

@@ -62,7 +62,7 @@ public sealed partial class MainViewModel
             return;
         if (_streaming.DeviceFailed)
         {
-            _ = ReopenDevicesAsync();
+            _ = RestartAsync();
             return;
         }
         var stats = _streaming.Stats;
@@ -99,19 +99,8 @@ public sealed partial class MainViewModel
     /// <summary>Called when Windows resumes from sleep or hibernation.</summary>
     public void OnSystemResumed() => _restartWhenConnected |= IsRunning;
 
-    // ponytail: one attempt; a device still missing right after resume stops streaming with the reason in Status.
-    private async Task RestartAsync()
-    {
-        _restarting = true;
-        try
-        {
-            await StartAsync();
-        }
-        finally
-        {
-            _restarting = false;
-        }
-    }
+    /// <summary>Waits between restart attempts; tests shorten it.</summary>
+    public IReadOnlyList<TimeSpan> RestartRetryDelays { get; set; } = AutoConnectRetryDelays;
 
     private void Announce(PeerConnection connection)
     {
@@ -140,16 +129,18 @@ public sealed partial class MainViewModel
         _samplesWithoutPeer = 0;
     }
 
+    // Devices are often still resetting right after resume ("audio device has been disconnected"), so a failed
+    // reopen retries rather than leaving streaming down.
     // ponytail: retries on the auto-connect schedule (about a minute), then stops with the reason in Status.
     // A device plugged back in later needs Start by hand; watch device arrivals (MMNotificationClient) if that annoys.
-    private async Task ReopenDevicesAsync()
+    private async Task RestartAsync()
     {
         _restarting = true;
         try
         {
             _streaming.Stop();
             IsRunning = false;
-            await ConnectWithRetriesAsync(AutoConnectRetryDelays);
+            await ConnectWithRetriesAsync(RestartRetryDelays);
         }
         finally
         {
